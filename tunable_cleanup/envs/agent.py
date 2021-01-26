@@ -43,7 +43,7 @@ class Agent(object):
         self.row_size = row_size
         self.col_size = col_size
         # Step, wall, fire, hit, apple
-        self.reward_this_turn = [-1, 0, 0, 0, 0]
+        self.reward_this_turn = [0, 0, 0, 0, 0]
 
     @property
     def action_space(self):
@@ -82,6 +82,8 @@ class Agent(object):
 
     def compute_reward(self):
         reward = self.reward_this_turn
+        # if (self.reward_this_turn != [-1, 0, 0, 0, 0]):
+        #     print(self.reward_this_turn)
         self.reward_this_turn = [-1, 0, 0, 0, 0]
         return reward
 
@@ -236,7 +238,7 @@ class CleanupAgent(Agent):
 
     def hit(self, char):
         if char == 'F':
-            self.reward_this_turn[3] -= 1
+            self.reward_this_turn[3] -= 50
 
     def consume(self, char):
         """Defines how an agent interacts with the char it is standing on"""
