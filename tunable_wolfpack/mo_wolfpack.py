@@ -114,7 +114,7 @@ MEAN_REWARD_EVERY = 300 # Episodes
 FRAME_STACK_SIZE = 3
 
 PATH_ID = 'tunable_DDMMYY'
-NUM_WEIGHTS = 2
+NUM_WEIGHTS = 4
 
 
 class DQNAgent:
@@ -333,8 +333,8 @@ if __name__ == '__main__':
         # Sample preference space
         pref1 = pref_space.sample()
         pref2 = pref_space.sample()
-        weights1 = pref1[2:]
-        weights2 = pref2[2:]
+        weights1 = pref1
+        weights2 = pref2
         
         # Reset env
         observations = env.reset()

@@ -424,19 +424,19 @@ if __name__ == '__main__':
     N_PREDATOR = 2
     env = MOWolfpackCustomEnv(n_predator=N_PREDATOR, image=False)
     observations = env.reset() ; env.render()
-    # # plt.figure(2) ; plt.cla() ; plt.imshow(observations[1]) ; plt.axis('off') ; plt.pause(2)
-    # # plt.figure(3) ; plt.cla() ; plt.imshow(observations[2]) ; plt.axis('off') ; plt.pause(0.00001)
-    # while True:
-    # # for _ in range(env.MAX_STEPS):
-    #     prey_actions = [np.random.choice([0, env.action_space.sample()], p=[0.8, 0.2])]
-    #     pred_actions = [env.action_space.sample() for _ in range(N_PREDATOR)]
-    #     actions = prey_actions + pred_actions
-    #     observations, rewards, done, _ = env.step(actions) ; env.render()
-    #     # plt.figure(2) ; plt.cla() ; plt.imshow(observations[1]) ; plt.axis('off') ; plt.pause(0.00001)
-    #     # plt.figure(3) ; plt.cla() ; plt.imshow(observations[2]) ; plt.axis('off') ; plt.pause(0.00001)
-    #     # env.render()
-    #     if done:
-    #         print(rewards, env.n_steps)
-    #         break
-    # plt.show()
+    # plt.figure(2) ; plt.cla() ; plt.imshow(observations[1]) ; plt.axis('off') ; plt.pause(2)
+    # plt.figure(3) ; plt.cla() ; plt.imshow(observations[2]) ; plt.axis('off') ; plt.pause(0.00001)
+    while True:
+    # for _ in range(env.MAX_STEPS):
+        prey_actions = [np.random.choice([0, env.action_space.sample()], p=[0.8, 0.2])]
+        pred_actions = [env.action_space.sample() for _ in range(N_PREDATOR)]
+        actions = prey_actions + pred_actions
+        observations, rewards, done, _ = env.step(actions) ; env.render()
+        # plt.figure(2) ; plt.cla() ; plt.imshow(observations[1]) ; plt.axis('off') ; plt.pause(0.00001)
+        # plt.figure(3) ; plt.cla() ; plt.imshow(observations[2]) ; plt.axis('off') ; plt.pause(0.00001)
+        # env.render()
+        if done:
+            print(rewards, env.n_steps)
+            break
+    plt.show()
         
