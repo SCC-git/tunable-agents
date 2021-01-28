@@ -58,7 +58,7 @@ DEFAULT_COLOURS = {' ': [0, 0, 0],  # Black background
 class MapEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    MAX_STEPS = 200
+    MAX_STEPS = 250
 
     def __init__(self, ascii_map, num_agents=1, render=True, color_map=None):
         """
@@ -335,10 +335,10 @@ class MapEnv(gym.Env):
         rgb_arr = self.map_to_colors(map_with_agents)
         plt.imshow(rgb_arr, interpolation='nearest')
         plt.pause(0.00001)
-        # if filename is None:
-        #     plt.show()
+        if filename is not None:
+            # plt.show()
         # else:
-        #     plt.savefig(filename)
+            plt.savefig(filename)
 
     def update_moves(self, agent_actions):
         """Converts agent action tuples into a new map and new agent positions.

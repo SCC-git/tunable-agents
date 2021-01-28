@@ -5,6 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.cm import get_cmap
 import random
+import os
+from datetime import date
 
 import tensorflow as tf
 from tensorflow import keras
@@ -104,12 +106,12 @@ SEED = 42
 IMAGE = True
 
 BATCH_SIZE = 64
-REPLAY_MEMORY_SIZE = 6000
+REPLAY_MEMORY_SIZE = 6_000
 
 GAMMA = 0.99
 ALPHA = 1e-4
 
-TRAINING_EPISODES = 80_000
+TRAINING_EPISODES = 100
 
 EPSILON_START = 1.0
 EPSILON_END = 0.01
@@ -121,11 +123,13 @@ MEAN_REWARD_EVERY = 300 # Episodes
 
 FRAME_STACK_SIZE = 3
 
-PATH_ID = 'tunable_260121'
+PATH_ID = 'tunable_' + str(date.today())
 PATH_DIR = './'
+VIDEO_DIR = PATH_DIR + 'videos/' + str(date.today()) + '/'
+
+steps = 0 # Messy but it's basically operating as a static variable anyways
 
 NUM_WEIGHTS = 5
-
 
 class DQNAgent:
 
@@ -298,6 +302,130 @@ class DQNAgent:
             self.fig.savefig(image_path)
 
 
+def training_episode(render=False):
+    # Decay epsilon
+    eps = max(EPSILON_START - episode * EPSILON_DECAY, EPSILON_END)
+
+    # Sample preference space
+    pref1 = pref_space.sample()
+    pref2 = pref_space.sample()
+    weights1 = pref1
+    weights2 = pref2
+
+    # Reset env
+    observations = env.reset()
+    agent1_state = observations['agent-0']
+    agent2_state = observations['agent-1']
+
+    if IMAGE:
+        # Create deque for storing stack of N frames
+        # Agent 1
+        agent1_initial_stack = [agent1_state for _ in range(FRAME_STACK_SIZE)]
+        agent1_frame_stack = deque(agent1_initial_stack, maxlen=FRAME_STACK_SIZE)
+        agent1_state = np.concatenate(agent1_frame_stack, axis=2) # State is now a stack of frames
+        # Agent 2
+        agent2_initial_stack = [agent2_state for _ in range(FRAME_STACK_SIZE)]
+        agent2_frame_stack = deque(agent2_initial_stack, maxlen=FRAME_STACK_SIZE)
+        agent2_state = np.concatenate(agent2_frame_stack, axis=2) # State is now a stack of frames
+    else:
+        # Normalise states between 0 and 1
+        agent1_state = agent1_state / max_state
+        agent2_state = agent2_state / max_state
+
+
+    episode_reward = np.zeros(N_AGENT)
+
+    while True:
+        # Get actions
+        agent1_action = agent1.epsilon_greedy_policy(agent1_state, eps, weights1)
+        agent2_action = agent2.epsilon_greedy_policy(agent2_state, eps, weights2)
+        # actions = [agent1_action]
+        actions = [agent1_action, agent2_action]
+
+        # Take actions, observe next states and rewards
+        next_observations, reward_vectors, done, _ = env.step(actions)
+        next_agent1_state = next_observations['agent-0']
+        next_agent2_state = next_observations['agent-1']
+        # next_agent1_state, next_agent2_state = next_observations
+        agent1_rewards = reward_vectors['agent-0']
+        agent2_rewards = reward_vectors['agent-1']
+        # _, agent1_rewards, agent2_rewards = reward_vectors
+
+        # A dict now
+        done = done['__all__']
+
+        # Linear scalarisation
+        agent1_reward = np.dot(agent1_rewards, pref1)
+        agent2_reward = np.dot(agent2_rewards, pref2)
+        # rewards = [agent1_reward]
+        rewards = [agent1_reward, agent2_reward]
+
+        global steps
+        # Render if true
+        if render:
+            if not os.path.exists(VIDEO_DIR):
+                os.makedirs(VIDEO_DIR)
+            frame_number = steps % 1000
+            env.render(filename=VIDEO_DIR + str(frame_number))
+
+        # Store in replay buffers
+        # Agent 1
+        if IMAGE:
+            agent1_frame_stack.append(next_agent1_state)
+            next_agent1_state = np.concatenate(agent1_frame_stack, axis=2)
+        else:
+            next_agent1_state = next_agent1_state / max_state
+        agent1.replay_memory.append((agent1_state, agent1_action, agent1_reward, next_agent1_state, done, weights1))
+
+        # Store in replay buffers
+        # Agent 2
+        if IMAGE:
+            agent2_frame_stack.append(next_agent2_state)
+            next_agent2_state = np.concatenate(agent2_frame_stack, axis=2)
+        else:
+            next_agent2_state = next_agent2_state / max_state
+        agent2.replay_memory.append((agent2_state, agent2_action, agent2_reward, next_agent2_state, done, weights2))
+
+        # Assign next state to current state !!
+        agent1_state = next_agent1_state
+        agent2_state = next_agent2_state
+
+        steps += 1
+        episode_reward += np.array(rewards)
+
+        if done:
+            break
+
+        # Copy weights from main model to target model
+        if steps % COPY_TO_TARGET_EVERY == 0:
+            agent1.update_target_model()
+            agent2.update_target_model()
+
+    agent1.reward_tracker.append(episode_reward[agent1.agent_id-1])
+    agent2.reward_tracker.append(episode_reward[agent2.agent_id-1])
+
+    ep_rewards = [np.round(episode_reward[agent1.agent_id-1], 2),
+                  np.round(episode_reward[agent2.agent_id-1], 2)]
+    av_rewards = [np.round(agent1.reward_tracker.mean(), 2),
+                  np.round(agent2.reward_tracker.mean(), 2)]
+    # print("\rEpisode: {}, Time: {}, Reward1: {}, Avg Reward1: {}, eps: {:.3f}".format(
+    #     episode, datetime.now() - start_time, ep_rewards[0], av_rewards[0], eps), end="")
+    print("\rEpisode: {}, Time: {}, Reward1: {}, Reward2: {}, Avg Reward1: {}, Avg Reward2: {}, eps: {:.3f}".format(
+        episode, datetime.now() - start_time, ep_rewards[0], ep_rewards[1],  av_rewards[0], av_rewards[1], eps), end="")
+
+    if episode > START_TRAINING_AFTER: # Wait for buffer to fill up a bit
+        agent1.training_step()
+        agent2.training_step()
+
+    if episode % 250 == 0:
+        agent1.model.save(f'{PATH_DIR}/models/cleanup_model_agent1_{PATH_ID}.h5')
+        agent1.plot_learning_curve(image_path=f'{PATH_DIR}/plots/cleanup_plot_agent1_{PATH_ID}.png',
+                                   csv_path=f'{PATH_DIR}/plots/cleanup_rewards_agent1_{PATH_ID}.csv')
+        agent2.model.save(f'{PATH_DIR}/models/cleanup_model_agent2_{PATH_ID}.h5')
+        agent2.plot_learning_curve(image_path=f'{PATH_DIR}/plots/cleanup_plot_agent2_{PATH_ID}.png',
+                                   csv_path=f'{PATH_DIR}/plots/cleanup_rewards_agent2_{PATH_ID}.csv')
+
+
 N_AGENT = 2
 env = CleanupEnv(num_agents=N_AGENT)
 
@@ -325,124 +453,11 @@ if __name__ == '__main__':
         x, y = env.base_gridmap_array.shape[0] - 1, env.base_gridmap_array.shape[1] - 1
         max_state = np.array([x, y, *[z for _ in range(2) for z in [x, y, x+y]]], dtype=np.float32)
 
-    steps = 0
-
     pref_space = PreferenceSpace()
 
-    for episode in range(1, TRAINING_EPISODES+1):
-        # Decay epsilon
-        eps = max(EPSILON_START - episode * EPSILON_DECAY, EPSILON_END)
-
-        # Sample preference space
-        pref1 = pref_space.sample()
-        pref2 = pref_space.sample()
-        weights1 = pref1
-        weights2 = pref2
-
-        # Reset env
-        observations = env.reset()
-        agent1_state = observations['agent-0']
-        agent2_state = observations['agent-1']
-
-        if IMAGE:
-            # Create deque for storing stack of N frames
-            # Agent 1
-            agent1_initial_stack = [agent1_state for _ in range(FRAME_STACK_SIZE)]
-            agent1_frame_stack = deque(agent1_initial_stack, maxlen=FRAME_STACK_SIZE)
-            agent1_state = np.concatenate(agent1_frame_stack, axis=2) # State is now a stack of frames
-            # Agent 2
-            agent2_initial_stack = [agent2_state for _ in range(FRAME_STACK_SIZE)]
-            agent2_frame_stack = deque(agent2_initial_stack, maxlen=FRAME_STACK_SIZE)
-            agent2_state = np.concatenate(agent2_frame_stack, axis=2) # State is now a stack of frames
-        else:
-            # Normalise states between 0 and 1
-            agent1_state = agent1_state / max_state
-            agent2_state = agent2_state / max_state
-
-
-        episode_reward = np.zeros(N_AGENT)
-
-        while True:
-            # Get actions
-            agent1_action = agent1.epsilon_greedy_policy(agent1_state, eps, weights1)
-            agent2_action = agent2.epsilon_greedy_policy(agent2_state, eps, weights2)
-            # actions = [agent1_action]
-            actions = [agent1_action, agent2_action]
-
-            # Take actions, observe next states and rewards
-            next_observations, reward_vectors, done, _ = env.step(actions)
-            next_agent1_state = next_observations['agent-0']
-            next_agent2_state = next_observations['agent-1']
-            # next_agent1_state, next_agent2_state = next_observations
-            agent1_rewards = reward_vectors['agent-0']
-            agent2_rewards = reward_vectors['agent-1']
-            # _, agent1_rewards, agent2_rewards = reward_vectors
-
-            # A dict now
-            done = done['__all__']
-
-            # Linear scalarisation
-            agent1_reward = np.dot(agent1_rewards, pref1)
-            agent2_reward = np.dot(agent2_rewards, pref2)
-            # rewards = [agent1_reward]
-            rewards = [agent1_reward, agent2_reward]
-
-            # Store in replay buffers
-            # Agent 1
-            if IMAGE:
-                agent1_frame_stack.append(next_agent1_state)
-                next_agent1_state = np.concatenate(agent1_frame_stack, axis=2)
-            else:
-                next_agent1_state = next_agent1_state / max_state
-            agent1.replay_memory.append((agent1_state, agent1_action, agent1_reward, next_agent1_state, done, weights1))
-
-            # Store in replay buffers
-            # Agent 2
-            if IMAGE:
-                agent2_frame_stack.append(next_agent2_state)
-                next_agent2_state = np.concatenate(agent2_frame_stack, axis=2)
-            else:
-                next_agent2_state = next_agent2_state / max_state
-            agent2.replay_memory.append((agent2_state, agent2_action, agent2_reward, next_agent2_state, done, weights2))
-
-            # Assign next state to current state !!
-            agent1_state = next_agent1_state
-            agent2_state = next_agent2_state
-
-            steps += 1
-            episode_reward += np.array(rewards)
-
-            if done:
-                break
-
-            # Copy weights from main model to target model
-            if steps % COPY_TO_TARGET_EVERY == 0:
-                agent1.update_target_model()
-                agent2.update_target_model()
-
-        agent1.reward_tracker.append(episode_reward[agent1.agent_id-1])
-        agent2.reward_tracker.append(episode_reward[agent2.agent_id-1])
-
-        ep_rewards = [np.round(episode_reward[agent1.agent_id-1], 2),
-                      np.round(episode_reward[agent2.agent_id-1], 2)]
-        av_rewards = [np.round(agent1.reward_tracker.mean(), 2),
-                      np.round(agent2.reward_tracker.mean(), 2)]
-        # print("\rEpisode: {}, Time: {}, Reward1: {}, Avg Reward1: {}, eps: {:.3f}".format(
-        #     episode, datetime.now() - start_time, ep_rewards[0], av_rewards[0], eps), end="")
-        print("\rEpisode: {}, Time: {}, Reward1: {}, Reward2: {}, Avg Reward1: {}, Avg Reward2: {}, eps: {:.3f}".format(
-            episode, datetime.now() - start_time, ep_rewards[0], ep_rewards[1],  av_rewards[0], av_rewards[1], eps), end="")
-
-        if episode > START_TRAINING_AFTER: # Wait for buffer to fill up a bit
-            agent1.training_step()
-            agent2.training_step()
-
-        if episode % 250 == 0:
-            agent1.model.save(f'{PATH_DIR}/models/cleanup_model_agent1_{PATH_ID}.h5')
-            agent1.plot_learning_curve(image_path=f'{PATH_DIR}/plots/cleanup_plot_agent1_{PATH_ID}.png',
-                                      csv_path=f'{PATH_DIR}/plots/cleanup_rewards_agent1_{PATH_ID}.csv')
-            agent2.model.save(f'{PATH_DIR}/models/cleanup_model_agent2_{PATH_ID}.h5')
-            agent2.plot_learning_curve(image_path=f'{PATH_DIR}/plots/cleanup_plot_agent2_{PATH_ID}.png',
-                                      csv_path=f'{PATH_DIR}/plots/cleanup_rewards_agent2_{PATH_ID}.csv')
+    for episode in range(1, TRAINING_EPISODES):
+        training_episode() # Don't save images/render
+    training_episode(True) # Render last image
 
     agent1.model.save(f'{PATH_DIR}/models/cleanup_model_agent1_{PATH_ID}.h5')
     agent1.plot_learning_curve(image_path=f'{PATH_DIR}/plots/cleanup_plot_agent1_{PATH_ID}.png',
@@ -450,6 +465,7 @@ if __name__ == '__main__':
     agent2.model.save(f'{PATH_DIR}/models/cleanup_model_agent2_{PATH_ID}.h5')
     agent2.plot_learning_curve(image_path=f'{PATH_DIR}/plots/cleanup_plot_agent2_{PATH_ID}.png',
                               csv_path=f'{PATH_DIR}/plots/cleanup_rewards_agent2_{PATH_ID}.csv')
+
 
     run_time = datetime.now() - start_time
     print(f'\nRun time: {run_time} s')

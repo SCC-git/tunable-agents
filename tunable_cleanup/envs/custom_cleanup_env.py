@@ -2,6 +2,7 @@ import numpy as np
 import random
 import matplotlib.pyplot as plt
 
+
 from envs.constants import CLEANUP_MAP
 from envs.map_env import MapEnv, ACTIONS
 from envs.agent import CleanupAgent  # CLEANUP_VIEW_SIZE
@@ -172,17 +173,20 @@ class CleanupEnv(MapEnv):
 
 
 if __name__ == '__main__':
+    i = 0
+    filename = '../images/test'
     N_AGENT = 2
     env = CleanupEnv(num_agents=N_AGENT)
-    observations = env.reset(); env.render()
+    observations = env.reset(); env.render(filename= filename + str(i))
     # plt.figure(2) ; plt.cla() ; plt.imshow(observations[1]) ; plt.axis('off') ; plt.pause(2)
     # plt.figure(3) ; plt.cla() ; plt.imshow(observations[2]) ; plt.axis('off') ; plt.pause(0.00001)
     while True:
+        i += 1
         # for _ in range(env.MAX_STEPS):
         # prey_actions = [np.random.choice([0, env.action_space.sample()], p=[0.8, 0.2])]
         agent_actions = [env.action_space.sample() for _ in range(N_AGENT)]
         actions = agent_actions 
-        observations, rewards, done, _ = env.step(actions) ; env.render()
+        observations, rewards, done, _ = env.step(actions) ; env.render(filename= filename + str(i))
         # plt.figure(2) ; plt.cla() ; plt.imshow(observations[1]) ; plt.axis('off') ; plt.pause(0.00001)
         # plt.figure(3) ; plt.cla() ; plt.imshow(observations[2]) ; plt.axis('off') ; plt.pause(0.00001)
         # env.render()
