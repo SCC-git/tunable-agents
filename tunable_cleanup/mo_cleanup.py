@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib.cm import get_cmap
 import random
 import os
-from datetime import date
+from datetime import datetime
 
 import tensorflow as tf
 from tensorflow import keras
@@ -111,7 +111,7 @@ REPLAY_MEMORY_SIZE = 6_000
 GAMMA = 0.99
 ALPHA = 1e-4
 
-TRAINING_EPISODES = 100
+TRAINING_EPISODES = 1000
 
 EPSILON_START = 1.0
 EPSILON_END = 0.01
@@ -123,9 +123,11 @@ MEAN_REWARD_EVERY = 300 # Episodes
 
 FRAME_STACK_SIZE = 3
 
-PATH_ID = 'tunable_' + str(date.today())
+now = datetime.now()
+date_and_time = f'{now.year}-{now.month}-{now.day}_{now.hour}_{now.minute}'
+PATH_ID = 'tunable_' + str(date_and_time)
 PATH_DIR = './'
-VIDEO_DIR = PATH_DIR + 'videos/' + str(date.today()) + '/'
+VIDEO_DIR = PATH_DIR + 'videos/' + str(date_and_time) + '/'
 
 steps = 0 # Messy but it's basically operating as a static variable anyways
 
