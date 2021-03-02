@@ -22,7 +22,6 @@ from datetime import datetime # Used for timing script
 
 
 from line_profiler import LineProfiler
-from numba import njit
 
 ACTIONS = {'MOVE_LEFT': [-1, 0],  # Move left
            'MOVE_RIGHT': [1, 0],  # Move right
@@ -199,12 +198,12 @@ class MapEnv(gym.Env):
         # execute custom moves like firing
         self.update_custom_moves(agent_actions)
 
-        lp = LineProfiler()
-        lp.add_function(self.update_map)
-        lp.add_function(self.spawn_apples_and_waste)
-        lp_wrapper = lp(self.custom_map_update)
-        lp_wrapper()
-        lp.print_stats()
+        # lp = LineProfiler()
+        # lp.add_function(self.update_map)
+        # lp.add_function(self.spawn_apples_and_waste)
+        # lp_wrapper = lp(self.custom_map_update)
+        # lp_wrapper()
+        # lp.print_stats()
         # execute spawning events
         # self.custom_map_update()
 
@@ -1055,6 +1054,27 @@ CLEANUP_MAP = [
     '@HHHH       BBBBB@',
     '@@@@@@@@@@@@@@@@@@']
 
+CLEANUP_MAP_SIMPLIFIED = [
+    '@@@@@@@@@@@@@',
+    '@RRR     BBB@',
+    '@HHH      BB@',
+    '@RRR     BBB@',
+    '@RRR P    BB@',
+    '@RRR   P BBB@',
+    '@HHH      BB@',
+    '@RRR     BBB@',
+    '@HHHSSS   BB@',
+    '@HHHSSS   BB@',
+    '@RRR  P P BB@',
+    '@HHH  P  BBB@',
+    '@RRR    P BB@',
+    '@HHH P   BBB@',
+    '@RRR      BB@',
+    '@HHH  P  BBB@',
+    '@RRR      BB@',
+    '@RRR P P BBB@',
+    '@@@@@@@@@@@@@']
+
 class CleanupEnv(MapEnv):
 
     def __init__(self, ascii_map=CLEANUP_MAP, num_agents=1, render=False):
@@ -1156,11 +1176,10 @@ class CleanupEnv(MapEnv):
         for i in range(len(self.apple_points)):
             row, col = self.apple_points[i]
             # don't spawn apples where agents already are
-            if [row, col] not in self.agent_pos:
-                if self.world_map[row, col] != 'A':
-                    rand_num = np.random.rand(1)[0]
-                    if rand_num < self.current_apple_spawn_prob:
-                        spawn_points.append((row, col, 'A'))
+            if [row, col] not in self.agent_pos and self.world_map[row, col] != 'A':
+                rand_num = np.random.rand(1)[0]
+                if rand_num < self.current_apple_spawn_prob:
+                    spawn_points.append((row, col, 'A'))
 
         # spawn one waste point, only one can spawn per step
         if not np.isclose(self.current_waste_spawn_prob, 0):
