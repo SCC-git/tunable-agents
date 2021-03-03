@@ -20,7 +20,7 @@ from tensorflow.keras.layers import Dense
 from collections import deque # Used for replay buffer and reward tracking
 from datetime import datetime # Used for timing script
 
-
+import sys
 from line_profiler import LineProfiler
 
 ACTIONS = {'MOVE_LEFT': [-1, 0],  # Move left
@@ -205,7 +205,7 @@ class MapEnv(gym.Env):
         # lp_wrapper()
         # lp.print_stats()
         # execute spawning events
-        # self.custom_map_update()
+        self.custom_map_update()
 
         map_with_agents = self.get_map_with_agents()
 
@@ -358,8 +358,9 @@ class MapEnv(gym.Env):
         map_with_agents = self.get_map_with_agents()
 
         rgb_arr = self.map_to_colors(map_with_agents)
+        plt.cla()
         plt.imshow(rgb_arr, interpolation='nearest')
-        plt.pause(0.00001)
+        # plt.pause(0.00000001)
         if filename is not None:
             # plt.show()
             # else:
@@ -1284,7 +1285,7 @@ REPLAY_MEMORY_SIZE = 6_000
 GAMMA = 0.99
 ALPHA = 1e-4
 
-TRAINING_EPISODES = 10
+TRAINING_EPISODES = 2
 
 EPSILON_START = 1.0
 EPSILON_END = 0.01
@@ -1301,6 +1302,13 @@ date_and_time = f'{now.year}-{now.month}-{now.day}_{now.hour}_{now.minute}'
 PATH_ID = 'single_' + str(date_and_time)
 PATH_DIR = './'
 VIDEO_DIR = PATH_DIR + 'videos/' + str(date_and_time) + '/'
+
+LOGS_DIR = PATH_DIR + 'logs/' + str(date_and_time) + '/'
+if not os.path.exists(LOGS_DIR):
+    os.makedirs(LOGS_DIR)
+log_file = open(f'{LOGS_DIR}output.txt', 'w')
+sys.stdout = log_file
+
 
 steps = 0 # Messy but it's basically operating as a static variable anyways
 
