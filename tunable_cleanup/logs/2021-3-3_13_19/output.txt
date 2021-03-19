@@ -1,2 +1,0 @@
-Episode: 1, Time: 0:00:06.075414, Reward1: -319.0, Reward2: -376.0, Avg Reward1: -inf, Avg Reward2: -inf, eps: 1.000Episode: 1, Time: 0:02:50.008542, Reward1: -105.0, Reward2: -257.0, Avg Reward1: -inf, Avg Reward2: -inf, eps: 1.000
-Run time: 0:02:51.106555 s

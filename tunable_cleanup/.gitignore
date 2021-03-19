@@ -1,3 +1,5 @@
 models/*
 plots/*
 videos/*
+logs/*
+*.txt

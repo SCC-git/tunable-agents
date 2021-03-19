@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
+import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.cm import get_cmap
 import random
@@ -198,12 +200,6 @@ class MapEnv(gym.Env):
         # execute custom moves like firing
         self.update_custom_moves(agent_actions)
 
-        # lp = LineProfiler()
-        # lp.add_function(self.update_map)
-        # lp.add_function(self.spawn_apples_and_waste)
-        # lp_wrapper = lp(self.custom_map_update)
-        # lp_wrapper()
-        # lp.print_stats()
         # execute spawning events
         self.custom_map_update()
 
@@ -1285,7 +1281,7 @@ REPLAY_MEMORY_SIZE = 6_000
 GAMMA = 0.99
 ALPHA = 1e-4
 
-TRAINING_EPISODES = 2
+TRAINING_EPISODES = 1_000
 
 EPSILON_START = 1.0
 EPSILON_END = 0.01
@@ -1303,11 +1299,11 @@ PATH_ID = 'single_' + str(date_and_time)
 PATH_DIR = './'
 VIDEO_DIR = PATH_DIR + 'videos/' + str(date_and_time) + '/'
 
-LOGS_DIR = PATH_DIR + 'logs/' + str(date_and_time) + '/'
-if not os.path.exists(LOGS_DIR):
-    os.makedirs(LOGS_DIR)
-log_file = open(f'{LOGS_DIR}output.txt', 'w')
-sys.stdout = log_file
+# LOGS_DIR = PATH_DIR + 'logs/' + str(date_and_time) + '/'
+# if not os.path.exists(LOGS_DIR):
+#     os.makedirs(LOGS_DIR)
+# log_file = open(f'{LOGS_DIR}output.txt', 'w')
+sys.stdout = sys.__stdout__
 
 
 steps = 0 # Messy but it's basically operating as a static variable anyways
@@ -1345,28 +1341,27 @@ class DQNAgent:
         """
         Construct the DQN model.
         """
-        with tf.device('/gpu:0'):
-            if IMAGE:
-                model = keras.Sequential([
-                    Conv2D(256, (3, 3), activation='relu', input_shape=(self.input_size)),
-                    Dropout(0.2),
-                    Conv2D(256, (3, 3), activation='relu'),
-                    Dropout(0.2),
-                    Flatten(),
-                    Dense(64, activation='relu'),
-                    Dense(64, activation='relu'),
-                    Dense(env.action_space.n)
-                ])
-            else:
-                model = keras.Sequential([
-                    Dense(64, activation='relu', input_shape=(self.input_size)),
-                    Dense(64, activation='relu'),
-                    Dense(env.action_space.n)
-                ])
-
-            self.optimizer = keras.optimizers.Adam(lr=ALPHA)
-            self.loss_fn = keras.losses.Huber()
-            return model
+        #with tf.device('/gpu:0'):
+        if IMAGE:
+            model = keras.Sequential([
+                Conv2D(256, (3, 3), activation='relu', input_shape=(self.input_size)),
+                Dropout(0.2),
+                Conv2D(256, (3, 3), activation='relu'),
+                Dropout(0.2),
+                Flatten(),
+                Dense(64, activation='relu'),
+                Dense(64, activation='relu'),
+                Dense(env.action_space.n)
+            ])
+        else:
+            model = keras.Sequential([
+                Dense(64, activation='relu', input_shape=(self.input_size)),
+                Dense(64, activation='relu'),
+                Dense(env.action_space.n)
+            ])
+        self.optimizer = keras.optimizers.Adam(lr=ALPHA)
+        self.loss_fn = keras.losses.Huber()
+        return model
 
     def epsilon_greedy_policy(self, state, epsilon):
         """
@@ -1376,7 +1371,7 @@ class DQNAgent:
         if np.random.rand() < epsilon:
             return random.choice(self.actions)
         else:
-            Q_values = self.model.predict(state[np.newaxis])
+            Q_values = self.model(state[np.newaxis])
             return np.argmax(Q_values)
 
     def training_step(self):
@@ -1561,7 +1556,7 @@ def training_episode(render=False):
     # print("\rEpisode: {}, Time: {}, Reward1: {}, Avg Reward1: {}, eps: {:.3f}".format(
     #     episode, datetime.now() - start_time, ep_rewards[0], av_rewards[0], eps), end="")
     print("\rEpisode: {}, Time: {}, Reward1: {}, Reward2: {}, Avg Reward1: {}, Avg Reward2: {}, eps: {:.3f}".format(
-        episode, datetime.now() - start_time, ep_rewards[0], ep_rewards[1],  av_rewards[0], av_rewards[1], eps), end="")
+        episode, datetime.now() - start_time, ep_rewards[0], ep_rewards[1],  av_rewards[0], av_rewards[1], eps), end="", flush=True)
 
     if episode > START_TRAINING_AFTER: # Wait for buffer to fill up a bit
         agent1.training_step()
@@ -1598,7 +1593,15 @@ if __name__ == '__main__':
         x, y = env.base_gridmap_array.shape[0] - 1, env.base_gridmap_array.shape[1] - 1
         max_state = np.array([x, y, *[z for _ in range(2) for z in [x, y, x+y]]], dtype=np.float32)
     for episode in range(1, TRAINING_EPISODES):
-        training_episode() # Don't save images/render
+        if episode % 50 == 0:
+            lp = LineProfiler()
+            lp.add_function(env.step)
+            lp.add_function(agent2.epsilon_greedy_policy)
+            lp_wrapper = lp(training_episode)
+            lp_wrapper()
+            lp.print_stats()
+        else:
+            training_episode() # Don't save images/render
     training_episode(True) # Render last image
     agent1.model.save(f'{PATH_DIR}/models/cleanup_model_dqn1_{PATH_ID}.h5')
     agent1.plot_learning_curve(image_path=f'{PATH_DIR}/plots/cleanup_plot_dqn1_{PATH_ID}.png',
