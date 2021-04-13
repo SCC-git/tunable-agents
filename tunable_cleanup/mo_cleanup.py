@@ -79,11 +79,12 @@ class RewardTracker:
 class PreferenceSpace:
 
     def __init__(self):
-        w0 = 0.02 # Fire
-        w1 = 0.96 # Hit
-        w2 = 0.02 # Apple
-        w3 = 0 # Clean
-        self.distribution = [np.asarray([w0, w1, w2, w3], dtype=np.float32)]
+        w0 = 0.05 # Fire
+        w1 = 0.55 # Hit
+        w2_range = np.linspace(0,0.4,5) # Apple
+        # w3 = 0 # Clean
+        self.distribution = [np.asarray([w0, w1, w2, 0.4-w2], dtype=np.float32) for w2 in w2_range]
+        print(1)
         # w0 = 0.005 # Time penalty
         # w1 = 5 * w0 # Wall penalty : 5x time penalty
         # w2_range = np.linspace(0,0.97,5)
@@ -136,7 +137,7 @@ LOGS_DIR = PATH_DIR + 'logs/' + str(date_and_time) + '/'
 if not os.path.exists(LOGS_DIR):
     os.makedirs(LOGS_DIR)
 log_file = open(f'{LOGS_DIR}output.txt', 'w')
-sys.stdout = sys.__stdout__
+sys.stdout = log_file
 
 
 steps = 0 # Messy but it's basically operating as a static variable anyways
