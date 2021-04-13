@@ -84,7 +84,6 @@ class PreferenceSpace:
         w2_range = np.linspace(0,0.4,5) # Apple
         # w3 = 0 # Clean
         self.distribution = [np.asarray([w0, w1, w2, 0.4-w2], dtype=np.float32) for w2 in w2_range]
-        print(1)
         # w0 = 0.005 # Time penalty
         # w1 = 5 * w0 # Wall penalty : 5x time penalty
         # w2_range = np.linspace(0,0.97,5)
