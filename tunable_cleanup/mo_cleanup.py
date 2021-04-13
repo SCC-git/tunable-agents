@@ -2,10 +2,13 @@
 
 from envs.custom_cleanup_env import CleanupEnv
 import numpy as np
+import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.cm import get_cmap
 import random
 import os
+import sys
 from datetime import datetime
 
 import tensorflow as tf
@@ -76,11 +79,11 @@ class RewardTracker:
 class PreferenceSpace:
 
     def __init__(self):
-        w0 = 0.005 # Time penalty
-        w1 = 5 * w0 # Wall penalty : 5x time penalty
-        w2 = 0.07
-        w3_range = np.linspace(0, 0.9, 5)
-        self.distribution = [np.array([w0, w1, w2, w3, 0.9 - w3], dtype=np.float32) for w3 in w3_range]
+        w0 = 0.02 # Fire
+        w1 = 0.96 # Hit
+        w2 = 0.02 # Apple
+        w3 = 0 # Clean
+        self.distribution = [np.asarray([w0, w1, w2, w3], dtype=np.float32)]
         # w0 = 0.005 # Time penalty
         # w1 = 5 * w0 # Wall penalty : 5x time penalty
         # w2_range = np.linspace(0,0.97,5)
@@ -111,7 +114,7 @@ REPLAY_MEMORY_SIZE = 6_000
 GAMMA = 0.99
 ALPHA = 1e-4
 
-TRAINING_EPISODES = 1000
+TRAINING_EPISODES = 80_000
 
 EPSILON_START = 1.0
 EPSILON_END = 0.01
@@ -129,9 +132,16 @@ PATH_ID = 'tunable_' + str(date_and_time)
 PATH_DIR = './'
 VIDEO_DIR = PATH_DIR + 'videos/' + str(date_and_time) + '/'
 
+LOGS_DIR = PATH_DIR + 'logs/' + str(date_and_time) + '/'
+if not os.path.exists(LOGS_DIR):
+    os.makedirs(LOGS_DIR)
+log_file = open(f'{LOGS_DIR}output.txt', 'w')
+sys.stdout = sys.__stdout__
+
+
 steps = 0 # Messy but it's basically operating as a static variable anyways
 
-NUM_WEIGHTS = 5
+NUM_WEIGHTS = 4
 
 class DQNAgent:
 
@@ -222,7 +232,7 @@ class DQNAgent:
         if np.random.rand() < epsilon:
             return random.choice(self.actions)
         else:
-            Q_values = self.model.predict([state[np.newaxis], weights[np.newaxis]])
+            Q_values = self.model([state[np.newaxis], weights[np.newaxis]])
             return np.argmax(Q_values)
 
     def training_step(self):

@@ -42,8 +42,8 @@ class Agent(object):
         self.grid = grid
         self.row_size = row_size
         self.col_size = col_size
-        # Step, wall, fire, hit, apple
-        self.reward_this_turn = 0
+        # Fire, hit, apple, clean
+        self.reward_this_turn = [0, 0, 0, 0]
 
     @property
     def action_space(self):
@@ -84,7 +84,7 @@ class Agent(object):
         reward = self.reward_this_turn
         # if (self.reward_this_turn != [-1, 0, 0, 0, 0]):
         #     print(self.reward_this_turn)
-        self.reward_this_turn = 0
+        self.reward_this_turn = [0, 0, 0, 0]
         return reward
 
     def set_pos(self, new_pos):
@@ -231,19 +231,22 @@ class CleanupAgent(Agent):
 
     def fire_beam(self, char):
         if char == 'F':
-            self.reward_this_turn -= 1
+            self.reward_this_turn[0] = -1
 
     def get_done(self):
         return False
 
     def hit(self, char):
         if char == 'F':
-            self.reward_this_turn -= 50
+            self.reward_this_turn[1] = -1
+
+    def clean(self):
+        self.reward_this_turn[3] = 1
 
     def consume(self, char):
         """Defines how an agent interacts with the char it is standing on"""
         if char == 'A':
-            self.reward_this_turn += 1
+            self.reward_this_turn[2] = 1
             return ' '
         else:
             return char

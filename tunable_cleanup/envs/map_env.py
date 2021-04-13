@@ -58,7 +58,7 @@ DEFAULT_COLOURS = {' ': [0, 0, 0],  # Black background
 class MapEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    MAX_STEPS = 250
+    MAX_STEPS = 100
 
     def __init__(self, ascii_map, num_agents=1, render=True, color_map=None):
         """
@@ -333,11 +333,12 @@ class MapEnv(gym.Env):
         map_with_agents = self.get_map_with_agents()
 
         rgb_arr = self.map_to_colors(map_with_agents)
+        plt.cla()
         plt.imshow(rgb_arr, interpolation='nearest')
-        plt.pause(0.00001)
+        # plt.pause(0.00001)
         if filename is not None:
             # plt.show()
-        # else:
+            # else:
             plt.savefig(filename)
 
     def update_moves(self, agent_actions):
@@ -613,6 +614,9 @@ class MapEnv(gym.Env):
                         if self.world_map[next_cell[0], next_cell[1]] in cell_types:
                             type_index = cell_types.index(self.world_map[next_cell[0],
                                                                          next_cell[1]])
+                            for agent_location in agent_by_pos:
+                                if agent_location == tuple(start_pos):
+                                    self.agents[agent_by_pos[agent_location]].clean()
                             updates.append((next_cell[0], next_cell[1], update_char[type_index]))
                         break
 
@@ -620,6 +624,9 @@ class MapEnv(gym.Env):
                     if self.world_map[next_cell[0], next_cell[1]] in cell_types:
                         # print(f'Co-ord: {self.world_map[next_cell[0], next_cell[1]]}, Cell Types: {cell_types}')
                         type_index = cell_types.index(self.world_map[next_cell[0], next_cell[1]])
+                        for agent_location in agent_by_pos:
+                            if agent_location == tuple(start_pos):
+                                self.agents[agent_by_pos[agent_location]].clean()
                         # print(f'Type Index: {type_index}, Update char: {update_char[type_index]}\n')
                         updates.append((next_cell[0], next_cell[1], update_char[type_index]))
 

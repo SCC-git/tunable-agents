@@ -77,7 +77,7 @@ DEFAULT_COLOURS = {' ': [0, 0, 0],  # Black background
 class MapEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    MAX_STEPS = 1000
+    MAX_STEPS = 100
 
     def __init__(self, ascii_map, num_agents=1, render=True, color_map=None):
         """
@@ -1281,7 +1281,7 @@ REPLAY_MEMORY_SIZE = 6_000
 GAMMA = 0.99
 ALPHA = 1e-4
 
-TRAINING_EPISODES = 1_000
+TRAINING_EPISODES = 80_000
 
 EPSILON_START = 1.0
 EPSILON_END = 0.01
@@ -1593,15 +1593,15 @@ if __name__ == '__main__':
         x, y = env.base_gridmap_array.shape[0] - 1, env.base_gridmap_array.shape[1] - 1
         max_state = np.array([x, y, *[z for _ in range(2) for z in [x, y, x+y]]], dtype=np.float32)
     for episode in range(1, TRAINING_EPISODES):
-        if episode % 50 == 0:
-            lp = LineProfiler()
-            lp.add_function(env.step)
-            lp.add_function(agent2.epsilon_greedy_policy)
-            lp_wrapper = lp(training_episode)
-            lp_wrapper()
-            lp.print_stats()
-        else:
-            training_episode() # Don't save images/render
+        # if episode % 50 == 0:
+        #     lp = LineProfiler()
+        #     lp.add_function(env.step)
+        #     lp.add_function(agent2.epsilon_greedy_policy)
+        #     lp_wrapper = lp(training_episode)
+        #     lp_wrapper()
+        #     lp.print_stats()
+        # else:
+        training_episode() # Don't save images/render
     training_episode(True) # Render last image
     agent1.model.save(f'{PATH_DIR}/models/cleanup_model_dqn1_{PATH_ID}.h5')
     agent1.plot_learning_curve(image_path=f'{PATH_DIR}/plots/cleanup_plot_dqn1_{PATH_ID}.png',
