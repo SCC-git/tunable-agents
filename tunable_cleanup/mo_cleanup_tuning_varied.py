@@ -58,6 +58,12 @@ if __name__ == '__main__':
             print(f'\n\n{np.round(pref1, 3)}\n-----------------')
 
             for episode in range(1, EPISODES+1):
+
+                agent1_apples = 0
+                agent2_apples = 0
+                agent1_cleans = 0
+                agent2_cleans = 0
+
                 # Decay epsilon
                 eps = 0.01
                 # Reset env
@@ -121,20 +127,20 @@ if __name__ == '__main__':
                     steps += 1
                     episode_reward += np.array(rewards)
 
-                    if done:
-                        if agent1_rewards[2]:
-                            agent1_apples += 1
-                        if agent2_rewards[2]:
-                            agent2_apples += 1
-                        if agent1_rewards[3]:
-                            agent1_cleans += 1
-                        if agent2_rewards[3]:
-                            agent2_cleans += 1
+                    if agent1_rewards[2]:
+                        agent1_apples += 1
+                    if agent2_rewards[2]:
+                        agent2_apples += 1
+                    if agent1_rewards[3]:
+                        agent1_cleans += 1
+                    if agent2_rewards[3]:
+                        agent2_cleans += 1
 
+                    if done:
                         print(f'\rEp {episode}: Agent1_Apples: {agent1_apples},  Agent2_Apples: {agent2_apples},  Agent1_Cleans: {agent1_cleans},  Agent2_Cleans: {agent2_cleans}', end='')
                         break
 
-        results.append([pref2[2], pref2[2], agent1_apples, agent2_apples, agent1_cleans, agent2_cleans])
+            results.append([pref1[2], pref2[2], agent1_apples, agent2_apples, agent1_cleans, agent2_cleans])
 
 
     results = pd.DataFrame(results, columns = ["Competitive 1", "Competitive 2", "Agent 1 Apple", "Agent 2 Apple", "Agent 1 Clean", "Agent 2 Clean"])
