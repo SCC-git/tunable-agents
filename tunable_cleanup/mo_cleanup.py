@@ -63,7 +63,7 @@ class RewardTracker:
 
     def append(self, reward):
         self.moving_average.append(reward)
-        self.episode_rewards .append(reward)
+        self.episode_rewards.append(reward)
 
     def mean(self):
         return sum(self.moving_average) / self.maxlen
