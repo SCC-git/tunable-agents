@@ -62,26 +62,28 @@ if __name__ == '__main__':
     plt.show()
 
 
-    # # PLOT 2 :: TUNING PERFORMANCE WITH MATCHED PREFERENCES
-    results = pd.read_csv(f'./results/wolfpack_tuning_matched_prefs.csv')
+    # PLOT 2 :: TUNING PERFORMANCE WITH MATCHED PREFERENCES
+    results = pd.read_csv(f'./results/cleanup_tuning_matched_prefs.csv')
     EPISODES = 250
     fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(12,5))
-    ax[0].plot(results['Cooperative'], results['Team Capture'] / EPISODES, 'o--',
-            c=colour_palette[2], label='', alpha=1.0)
+    ax[0].plot(results['Cooperative (Clean)'], results['Agent 1 Clean'] / EPISODES, 'D--',
+               c=colour_palette[0], label='Agent 1', alpha=1.0)
+    ax[0].plot(results['Cooperative (Clean)'], results['Agent 2 Clean'] / EPISODES, 's--',
+               c=colour_palette[1], label='Agent 2', alpha=1.0)
     ax[0].set_xlabel('Cooperativeness')
-    ax[0].set_ylabel('Team Capture Rate')
+    ax[0].set_ylabel('Cleaning Rate')
     ax[0].grid(True, ls=':', c='dimgrey')
     ax[0].set_facecolor('white')
-    #ax[0].legend(facecolor='white')
+    # a[1].legend(facecolor='white')
     ax[0].xaxis.set_ticks_position('none')
     ax[0].yaxis.set_ticks_position('none')
 
-    ax[1].plot(results['Competitive'], results['Lone 1 Capture'] / EPISODES, 'D--',
-            c=colour_palette[0], label='Predator 1', alpha=1.0)
-    ax[1].plot(results['Competitive'], results['Lone 2 Capture'] / EPISODES, 's--',
-            c=colour_palette[1], label='Predator 2', alpha=1.0)
+    ax[1].plot(results['Competitive (Apple)'], results['Agent 1 Apple'] / EPISODES, 'D--',
+               c=colour_palette[0], label='Agent 1', alpha=1.0)
+    ax[1].plot(results['Competitive (Apple)'], results['Agent 2 Apple'] / EPISODES, 's--',
+               c=colour_palette[1], label='Agent 2', alpha=1.0)
     ax[1].set_xlabel('Competitiveness')
-    ax[1].set_ylabel('Lone Capture Rate')
+    ax[1].set_ylabel('Apple Collection Rate')
     ax[1].grid(True, ls=':', c='dimgrey')
     ax[1].set_facecolor('white')
     ax[1].legend(facecolor='white')
