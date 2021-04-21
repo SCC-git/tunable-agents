@@ -63,7 +63,7 @@ if __name__ == '__main__':
 
 
     # PLOT 2 :: TUNING PERFORMANCE WITH MATCHED PREFERENCES
-    results = pd.read_csv(f'./results/cleanup_tuning_matched_prefs.csv')
+    results = pd.read_csv(f'./results/cleanup_tuning_matched_prefs_200421.csv')
     EPISODES = 250
     fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(12,5))
     ax[0].plot(results['Cooperative (Clean)'], results['Agent 1 Clean'] / EPISODES, 'D--',

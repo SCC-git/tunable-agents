@@ -49,6 +49,11 @@ if __name__ == '__main__':
             agent1_cleans = 0
             agent2_cleans = 0
 
+            agent1_total_apples = 0
+            agent2_total_apples = 0
+            agent1_total_cleans = 0
+            agent2_total_cleans = 0
+
             pref1 = np.array([0.05, 0.55, pref_a, 0.4 - pref_a], dtype=np.float32)
             pref2 = np.array([0.05, 0.55, pref_b, 0.4 - pref_b], dtype=np.float32)
 
@@ -140,9 +145,14 @@ if __name__ == '__main__':
                         print(f'\rEp {episode}: Agent1_Apples: {agent1_apples},  Agent2_Apples: {agent2_apples},  Agent1_Cleans: {agent1_cleans},  Agent2_Cleans: {agent2_cleans}', end='')
                         break
 
-            results.append([pref1[2], pref2[2], agent1_apples, agent2_apples, agent1_cleans, agent2_cleans])
+                agent1_total_apples += agent1_apples
+                agent2_total_apples += agent2_apples
+                agent1_total_cleans += agent1_cleans
+                agent2_total_cleans += agent2_cleans
+
+            results.append([pref1[2], pref2[2], agent1_total_apples, agent2_total_apples, agent1_total_cleans, agent2_total_cleans])
 
 
     results = pd.DataFrame(results, columns = ["Competitive 1", "Competitive 2", "Agent 1 Apple", "Agent 2 Apple", "Agent 1 Clean", "Agent 2 Clean"])
 
-    results.to_csv(f'./results/cleanup_tuning_varied_prefs_190421.csv')
+    results.to_csv(f'./results/cleanup_tuning_varied_prefs_210421.csv')
