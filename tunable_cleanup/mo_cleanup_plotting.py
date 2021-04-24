@@ -17,7 +17,7 @@ colour_palette = get_cmap(name='tab10').colors
 
 data_dir = './plots/'
 
-MEAN_EVERY = 500
+MEAN_EVERY = 10
 
 fig, ax = plt.subplots()
 
@@ -36,15 +36,31 @@ def plot_reward_data(csv_path, colour_id, legend_label):
         tracker.append(reward)
         mean_rewards[j] = tracker.mean()
 
-    ax.plot(reward_data[MEAN_EVERY//2:80000,0], mean_rewards[MEAN_EVERY//2:80000],
+    ax.plot(reward_data[MEAN_EVERY//2:1000,0], mean_rewards[MEAN_EVERY//2:1000],
+            c=colour_palette[colour_id], label=legend_label, alpha=0.8)
+
+def plot_collective_reward(csv_path1, csv_path2, colour_id, legend_label):
+    reward_data1 = np.loadtxt(csv_path1, delimiter=',')
+    reward_data2 = np.loadtxt(csv_path2, delimiter=',')
+    mean_rewards = np.zeros(len(reward_data1))
+    tracker = MovingAverage(maxlen=MEAN_EVERY)
+
+    for j, (_, reward) in enumerate(reward_data1):
+        tracker.append(reward + reward_data2[j][1])
+        mean_rewards[j] = tracker.mean()
+
+    ax.plot(reward_data1[MEAN_EVERY//2:1000,0], mean_rewards[MEAN_EVERY//2:1000],
             c=colour_palette[colour_id], label=legend_label, alpha=0.8)
 
 
 if __name__ == '__main__':
     # PLOT 1 :: TRAINING PROGRESS
     # Wolfpack tunable
-    plot_reward_data(f'{data_dir}/cleanup_rewards_agent1_tunable_2021-4-14_11_4.csv', 0, 'Agent 1')
-    plot_reward_data(f'{data_dir}/cleanup_rewards_agent2_tunable_2021-4-14_11_4.csv', 1, 'Agent 2')
+    # plot_reward_data(f'{data_dir}/cleanup_rewards_dqn1_2021-4-24_12_40.csv', 0, 'Agent 1')
+    # plot_reward_data(f'{data_dir}/cleanup_rewards_dqn2_2021-4-24_12_40.csv', 1, 'Agent 2')
+
+    plot_collective_reward(f'{data_dir}/cleanup_rewards_dqn1_2021-4-24_12_40.csv',
+                           f'{data_dir}/cleanup_rewards_dqn2_2021-4-24_12_40.csv', 0, 'Collective Reward')
 
     # Wolpack fixed
     # plot_reward_data(f'{data_dir}/wolfpack_rewards_fixed_competitive.csv', 0, 'Fixed Competitive')
@@ -52,44 +68,44 @@ if __name__ == '__main__':
 
     # ax.set_ylim([-110,150])
     ax.set_xlabel('Episode')
-    ax.set_ylabel(f'Mean {MEAN_EVERY} Episode Reward')
+    ax.set_ylabel(f'Mean {MEAN_EVERY} Episode Collective Reward')
     ax.grid(True, ls=':', c='dimgrey')
     ax.set_facecolor('white')
     ax.legend(facecolor='white')
-    ax.set_xticks(np.arange(0, 80001, step=20000))
+    ax.set_xticks(np.arange(0, 1001, step=20000))
     ax.xaxis.set_ticks_position('none')
     ax.yaxis.set_ticks_position('none')
     plt.show()
 
 
-    # PLOT 2 :: TUNING PERFORMANCE WITH MATCHED PREFERENCES
-    results = pd.read_csv(f'./results/cleanup_tuning_matched_prefs_200421.csv')
-    EPISODES = 250
-    fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(12,5))
-    ax[0].plot(results['Cooperative (Clean)'], results['Agent 1 Clean'] / EPISODES, 'D--',
-               c=colour_palette[0], label='Agent 1', alpha=1.0)
-    ax[0].plot(results['Cooperative (Clean)'], results['Agent 2 Clean'] / EPISODES, 's--',
-               c=colour_palette[1], label='Agent 2', alpha=1.0)
-    ax[0].set_xlabel('Cooperativeness')
-    ax[0].set_ylabel('Cleaning Rate')
-    ax[0].grid(True, ls=':', c='dimgrey')
-    ax[0].set_facecolor('white')
-    # a[1].legend(facecolor='white')
-    ax[0].xaxis.set_ticks_position('none')
-    ax[0].yaxis.set_ticks_position('none')
-
-    ax[1].plot(results['Competitive (Apple)'], results['Agent 1 Apple'] / EPISODES, 'D--',
-               c=colour_palette[0], label='Agent 1', alpha=1.0)
-    ax[1].plot(results['Competitive (Apple)'], results['Agent 2 Apple'] / EPISODES, 's--',
-               c=colour_palette[1], label='Agent 2', alpha=1.0)
-    ax[1].set_xlabel('Competitiveness')
-    ax[1].set_ylabel('Apple Collection Rate')
-    ax[1].grid(True, ls=':', c='dimgrey')
-    ax[1].set_facecolor('white')
-    ax[1].legend(facecolor='white')
-    ax[1].xaxis.set_ticks_position('none')
-    ax[1].yaxis.set_ticks_position('none')
-    plt.show()
+    # # PLOT 2 :: TUNING PERFORMANCE WITH MATCHED PREFERENCES
+    # results = pd.read_csv(f'./results/cleanup_tuning_matched_prefs_200421.csv')
+    # EPISODES = 250
+    # fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(12,5))
+    # ax[0].plot(results['Cooperative (Clean)'], results['Agent 1 Clean'] / EPISODES, 'D--',
+    #            c=colour_palette[0], label='Agent 1', alpha=1.0)
+    # ax[0].plot(results['Cooperative (Clean)'], results['Agent 2 Clean'] / EPISODES, 's--',
+    #            c=colour_palette[1], label='Agent 2', alpha=1.0)
+    # ax[0].set_xlabel('Cooperativeness')
+    # ax[0].set_ylabel('Cleaning Rate')
+    # ax[0].grid(True, ls=':', c='dimgrey')
+    # ax[0].set_facecolor('white')
+    # # a[1].legend(facecolor='white')
+    # ax[0].xaxis.set_ticks_position('none')
+    # ax[0].yaxis.set_ticks_position('none')
+    #
+    # ax[1].plot(results['Competitive (Apple)'], results['Agent 1 Apple'] / EPISODES, 'D--',
+    #            c=colour_palette[0], label='Agent 1', alpha=1.0)
+    # ax[1].plot(results['Competitive (Apple)'], results['Agent 2 Apple'] / EPISODES, 's--',
+    #            c=colour_palette[1], label='Agent 2', alpha=1.0)
+    # ax[1].set_xlabel('Competitiveness')
+    # ax[1].set_ylabel('Apple Collection Rate')
+    # ax[1].grid(True, ls=':', c='dimgrey')
+    # ax[1].set_facecolor('white')
+    # ax[1].legend(facecolor='white')
+    # ax[1].xaxis.set_ticks_position('none')
+    # ax[1].yaxis.set_ticks_position('none')
+    # plt.show()
     #
     #
     # # PLOT 3 :: TUNING PERFORMANCE WITH 3 PREDATORS

@@ -1571,7 +1571,7 @@ def training_episode(render=False):
                                    csv_path=f'{PATH_DIR}/plots/cleanup_rewards_dqn2_{PATH_ID}.csv')
 
 
-N_AGENT = 2
+N_AGENT = 5
 env = CleanupEnv(num_agents=N_AGENT)
 
 if __name__ == '__main__':
