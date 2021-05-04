@@ -17,7 +17,7 @@ colour_palette = get_cmap(name='tab10').colors
 
 data_dir = './plots/'
 
-MEAN_EVERY = 10
+MEAN_EVERY = 50
 
 fig, ax = plt.subplots()
 
@@ -39,28 +39,40 @@ def plot_reward_data(csv_path, colour_id, legend_label):
     ax.plot(reward_data[MEAN_EVERY//2:1000,0], mean_rewards[MEAN_EVERY//2:1000],
             c=colour_palette[colour_id], label=legend_label, alpha=0.8)
 
-def plot_collective_reward(csv_path1, csv_path2, colour_id, legend_label):
-    reward_data1 = np.loadtxt(csv_path1, delimiter=',')
-    reward_data2 = np.loadtxt(csv_path2, delimiter=',')
-    mean_rewards = np.zeros(len(reward_data1))
+def plot_collective_reward(csv_paths, colour_id, legend_label):
+    reward_data = [np.loadtxt(csv_path, delimiter=',') for csv_path in csv_paths]
+
+    mean_rewards = np.zeros(len(reward_data[0]))
     tracker = MovingAverage(maxlen=MEAN_EVERY)
 
-    for j, (_, reward) in enumerate(reward_data1):
-        tracker.append(reward + reward_data2[j][1])
+    y = list(map(sum, zip(*[[reward for _, reward in a_reward_data] for a_reward_data in reward_data])))
+
+    summed_rewards = list(map(sum, zip(*y)))
+
+    for j, summed_reward in enumerate(summed_rewards):
+        print(summed_reward)
+        tracker.append(summed_reward)
         mean_rewards[j] = tracker.mean()
 
-    ax.plot(reward_data1[MEAN_EVERY//2:1000,0], mean_rewards[MEAN_EVERY//2:1000],
+    ax.plot(reward_data[0][MEAN_EVERY//2:1000,0], mean_rewards[MEAN_EVERY//2:1000],
             c=colour_palette[colour_id], label=legend_label, alpha=0.8)
 
 
 if __name__ == '__main__':
     # PLOT 1 :: TRAINING PROGRESS
     # Wolfpack tunable
-    # plot_reward_data(f'{data_dir}/cleanup_rewards_dqn1_2021-4-24_12_40.csv', 0, 'Agent 1')
-    # plot_reward_data(f'{data_dir}/cleanup_rewards_dqn2_2021-4-24_12_40.csv', 1, 'Agent 2')
+    # plot_reward_data(f'{data_dir}/cleanup_rewards_dqn1_2021-4-24_13_38.csv', 0, 'Agent 1')
+    # plot_reward_data(f'{data_dir}/cleanup_rewards_dqn2_2021-4-24_13_38.csv', 1, 'Agent 2')
+    # plot_reward_data(f'{data_dir}/cleanup_rewards_dqn3_2021-4-24_13_38.csv', 2, 'Agent 3')
+    # plot_reward_data(f'{data_dir}/cleanup_rewards_dqn4_2021-4-24_13_38.csv', 3, 'Agent 4')
+    # plot_reward_data(f'{data_dir}/cleanup_rewards_dqn5_2021-4-24_13_38.csv', 4, 'Agent 5')
 
-    plot_collective_reward(f'{data_dir}/cleanup_rewards_dqn1_2021-4-24_12_40.csv',
-                           f'{data_dir}/cleanup_rewards_dqn2_2021-4-24_12_40.csv', 0, 'Collective Reward')
+    plot_collective_reward([f'{data_dir}/cleanup_rewards_dqn1_2021-4-24_13_38.csv',
+                           f'{data_dir}/cleanup_rewards_dqn2_2021-4-24_13_38.csv',
+                           f'{data_dir}/cleanup_rewards_dqn3_2021-4-24_13_38.csv',
+                           f'{data_dir}/cleanup_rewards_dqn4_2021-4-24_13_38.csv',
+                           f'{data_dir}/cleanup_rewards_dqn5_2021-4-24_13_38.csv'],
+                           0, 'Collective Reward')
 
     # Wolpack fixed
     # plot_reward_data(f'{data_dir}/wolfpack_rewards_fixed_competitive.csv', 0, 'Fixed Competitive')
@@ -68,7 +80,7 @@ if __name__ == '__main__':
 
     # ax.set_ylim([-110,150])
     ax.set_xlabel('Episode')
-    ax.set_ylabel(f'Mean {MEAN_EVERY} Episode Collective Reward')
+    ax.set_ylabel(f'Mean {MEAN_EVERY} Episode Reward')
     ax.grid(True, ls=':', c='dimgrey')
     ax.set_facecolor('white')
     ax.legend(facecolor='white')

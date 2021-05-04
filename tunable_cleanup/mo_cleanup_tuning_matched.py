@@ -21,7 +21,7 @@ PATH_DIR = "./models/"
 MODEL_PATHS = [f'{PATH_DIR}/cleanup_model_agent1_tunable_2021-4-14_11_4.h5',
                f'{PATH_DIR}/cleanup_model_agent2_tunable_2021-4-14_11_4.h5']
 
-EPISODES = 250
+EPISODES = 5
 
 if __name__ == '__main__':
 
@@ -38,7 +38,7 @@ if __name__ == '__main__':
 
     steps = 0
 
-    prefs = np.linspace(0, 0.4, 17)
+    prefs = np.linspace(0, 0.4, 4)
     results = []
     for pref in prefs:
 
@@ -97,11 +97,11 @@ if __name__ == '__main__':
                 # actions = [agent1_action]
                 actions = [agent1_action, agent2_action]
 
-
                 # Take actions, observe next states and rewards
                 next_observations, reward_vectors, done, _ = env.step(actions)
                 next_agent1_state = next_observations['agent-0']
                 next_agent2_state = next_observations['agent-1']
+
 
                 agent1_rewards = reward_vectors['agent-0']
                 agent2_rewards = reward_vectors['agent-1']
@@ -142,7 +142,7 @@ if __name__ == '__main__':
                     agent2_cleans += 1
 
                 if done:
-                    print(f'\rEp {episode}: Agent1_Apples: {agent1_apples},  Agent2_Apples: {agent2_apples},  Agent1_Cleans: {agent1_cleans},  Agent2_Cleans: {agent2_cleans}', end='')
+                    print(f'\rEp {episode}: Agent1_Apples: {agent1_apples},  Agent2_Apples: {agent2_apples},  Agent1_Cleans: {agent1_cleans},  Agent2_Cleans: {agent2_cleans}\n', end='')
                     break
 
             agent1_total_apples += agent1_apples
@@ -155,4 +155,4 @@ if __name__ == '__main__':
 
     results = pd.DataFrame(results, columns = ["Competitive (Apple)", "Cooperative (Clean)", "Agent 1 Apple", "Agent 2 Apple", "Agent 1 Clean", "Agent 2 Clean"])
 
-    results.to_csv(f'./results/cleanup_tuning_matched_prefs_200421.csv')
+    results.to_csv(f'./results/cleanup_tuning_matched_prefs_testing.csv')

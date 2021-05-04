@@ -229,7 +229,9 @@ class DQNAgent:
             return random.choice(self.actions)
         else:
             Q_values = self.model([state[np.newaxis], weights[np.newaxis]])
-            return np.argmax(Q_values)
+            max_val = np.argmax(Q_values)
+            print(f'Agent {self.agent_id} Q Values: {Q_values[0]}, Max Value index: {max_val}')
+            return max_val
 
     def training_step(self):
         """
@@ -347,6 +349,7 @@ def training_episode(render=False):
         # Get actions
         agent1_action = agent1.epsilon_greedy_policy(agent1_state, eps, weights1)
         agent2_action = agent2.epsilon_greedy_policy(agent2_state, eps, weights2)
+
         # actions = [agent1_action]
         actions = [agent1_action, agent2_action]
 

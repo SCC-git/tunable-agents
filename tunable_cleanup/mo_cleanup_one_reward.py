@@ -30,7 +30,7 @@ LOGS_DIR = './logs/' + str(date_and_time) + '/'
 if not os.path.exists(LOGS_DIR):
     os.makedirs(LOGS_DIR)
 log_file = open(f'{LOGS_DIR}output.txt', 'w')
-sys.stdout = log_file
+sys.stdout = sys.__stdout__
 
 EPISODES = 1000
 
@@ -97,13 +97,15 @@ if __name__ == '__main__':
         episode_reward = np.zeros(N_AGENT)
 
         while True:
-            # Get actions
+            # Get actionss
             agent1_action = agent1.epsilon_greedy_policy(agent1_state, eps)
             agent2_action = agent2.epsilon_greedy_policy(agent2_state, eps)
             agent3_action = agent3.epsilon_greedy_policy(agent3_state, eps)
             agent4_action = agent4.epsilon_greedy_policy(agent4_state, eps)
             agent5_action = agent5.epsilon_greedy_policy(agent5_state, eps)
             actions = [agent1_action, agent2_action, agent3_action, agent4_action, agent5_action]
+
+            print(actions)
 
             # Take actions, observe next states and rewards
             next_observations, reward_vectors, done, _ = env.step(actions)

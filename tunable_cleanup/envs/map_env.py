@@ -170,6 +170,7 @@ class MapEnv(gym.Env):
             agent_action = self.agents[agent_id].action_map(action)
             agent_actions[agent_id] = agent_action
 
+        print(f'Agent Actions: {agent_actions}\n')
         # move
         self.update_moves(agent_actions)
 

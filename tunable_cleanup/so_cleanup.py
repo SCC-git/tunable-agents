@@ -189,6 +189,8 @@ class MapEnv(gym.Env):
             agent_action = self.agents[agent_id].action_map(action)
             agent_actions[agent_id] = agent_action
 
+        print(f'Agent Actions: {agent_actions}')
+
         # move
         self.update_moves(agent_actions)
 
@@ -563,9 +565,7 @@ class MapEnv(gym.Env):
         """For points in new_points, place desired char on the map"""
         for i in range(len(new_points)):
             row, col, char = new_points[i]
-            # print(f'Old Coords: {row}, {col}\nType: {self.world_map[row, col]}')
             self.world_map[row, col] = char
-            # print(f'New Coords: {row}, {col}\nType: {self.world_map[row, col]}')
 
     def reset_map(self):
         """Resets the map to be empty as well as a custom reset set by subclasses"""
@@ -1299,11 +1299,11 @@ PATH_ID = 'single_' + str(date_and_time)
 PATH_DIR = './'
 VIDEO_DIR = PATH_DIR + 'videos/' + str(date_and_time) + '/'
 
-# LOGS_DIR = PATH_DIR + 'logs/' + str(date_and_time) + '/'
-# if not os.path.exists(LOGS_DIR):
-#     os.makedirs(LOGS_DIR)
-# log_file = open(f'{LOGS_DIR}output.txt', 'w')
-sys.stdout = sys.__stdout__
+LOGS_DIR = PATH_DIR + 'logs/' + str(date_and_time) + '/'
+if not os.path.exists(LOGS_DIR):
+    os.makedirs(LOGS_DIR)
+log_file = open(f'{LOGS_DIR}output.txt', 'w')
+sys.stdout = sys.log_file
 
 
 steps = 0 # Messy but it's basically operating as a static variable anyways
@@ -1372,7 +1372,9 @@ class DQNAgent:
             return random.choice(self.actions)
         else:
             Q_values = self.model(state[np.newaxis])
-            return np.argmax(Q_values)
+            max_val = np.argmax(Q_values)
+            print(f'Agent {self.agent_id} Q Values: {Q_values[0]}, Max Value index: {max_val}')
+            return max_val
 
     def training_step(self):
         """
@@ -1571,7 +1573,7 @@ def training_episode(render=False):
                                    csv_path=f'{PATH_DIR}/plots/cleanup_rewards_dqn2_{PATH_ID}.csv')
 
 
-N_AGENT = 5
+N_AGENT = 2
 env = CleanupEnv(num_agents=N_AGENT)
 
 if __name__ == '__main__':
