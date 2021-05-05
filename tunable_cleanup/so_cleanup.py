@@ -189,7 +189,7 @@ class MapEnv(gym.Env):
             agent_action = self.agents[agent_id].action_map(action)
             agent_actions[agent_id] = agent_action
 
-        print(f'Agent Actions: {agent_actions}')
+        # print(f'Agent Actions: {agent_actions}')
 
         # move
         self.update_moves(agent_actions)
@@ -1052,25 +1052,25 @@ CLEANUP_MAP = [
     '@@@@@@@@@@@@@@@@@@']
 
 CLEANUP_MAP_SIMPLIFIED = [
-    '@@@@@@@@@@@@@',
-    '@RRR     BBB@',
-    '@HHH      BB@',
-    '@RRR     BBB@',
-    '@RRR P    BB@',
-    '@RRR   P BBB@',
-    '@HHH      BB@',
-    '@RRR     BBB@',
-    '@HHHSSS   BB@',
-    '@HHHSSS   BB@',
-    '@RRR  P P BB@',
-    '@HHH  P  BBB@',
-    '@RRR    P BB@',
-    '@HHH P   BBB@',
-    '@RRR      BB@',
-    '@HHH  P  BBB@',
-    '@RRR      BB@',
-    '@RRR P P BBB@',
-    '@@@@@@@@@@@@@']
+    '@@@@@@@@@@@@@@@@@',
+    '@RRRR      BBBBB@',
+    '@HHHH       BBBB@',
+    '@RRRR      BBBBB@',
+    '@RRRR P     BBBB@',
+    '@RRRR   PP BBBBB@',
+    '@HHHH       BBBB@',
+    '@RRRR      BBBBB@',
+    '@HHHHSSS    BBBB@',
+    '@HHHHSSS    BBBB@',
+    '@RRRR  P  P BBBB@',
+    '@HHHH  P   BBBBB@',
+    '@RRRR     P BBBB@',
+    '@HHHH P    BBBBB@',
+    '@RRRR       BBBB@',
+    '@HHHH  P   BBBBB@',
+    '@RRRR       BBBB@',
+    '@RRRR P P  BBBBB@',
+    '@@@@@@@@@@@@@@@@@']
 
 class CleanupEnv(MapEnv):
 
@@ -1303,7 +1303,7 @@ LOGS_DIR = PATH_DIR + 'logs/' + str(date_and_time) + '/'
 if not os.path.exists(LOGS_DIR):
     os.makedirs(LOGS_DIR)
 log_file = open(f'{LOGS_DIR}output.txt', 'w')
-sys.stdout = sys.log_file
+sys.stdout = log_file
 
 
 steps = 0 # Messy but it's basically operating as a static variable anyways
@@ -1373,7 +1373,7 @@ class DQNAgent:
         else:
             Q_values = self.model(state[np.newaxis])
             max_val = np.argmax(Q_values)
-            print(f'Agent {self.agent_id} Q Values: {Q_values[0]}, Max Value index: {max_val}')
+            # print(f'Agent {self.agent_id} Q Values: {Q_values[0]}, Max Value index: {max_val}')
             return max_val
 
     def training_step(self):
@@ -1462,7 +1462,7 @@ def training_episode(render=False):
     # Reset env
     observations = env.reset()
     agent1_state = observations['agent-0']
-    agent2_state = observations['agent-1']
+    # agent2_state = observations['agent-1']
 
     if IMAGE:
         # Create deque for storing stack of N frames
@@ -1470,32 +1470,37 @@ def training_episode(render=False):
         agent1_initial_stack = [agent1_state for _ in range(FRAME_STACK_SIZE)]
         agent1_frame_stack = deque(agent1_initial_stack, maxlen=FRAME_STACK_SIZE)
         agent1_state = np.concatenate(agent1_frame_stack, axis=2) # State is now a stack of frames
-        # Agent 2
-        agent2_initial_stack = [agent2_state for _ in range(FRAME_STACK_SIZE)]
-        agent2_frame_stack = deque(agent2_initial_stack, maxlen=FRAME_STACK_SIZE)
-        agent2_state = np.concatenate(agent2_frame_stack, axis=2) # State is now a stack of frames
+        # # Agent 2
+        # agent2_initial_stack = [agent2_state for _ in range(FRAME_STACK_SIZE)]
+        # agent2_frame_stack = deque(agent2_initial_stack, maxlen=FRAME_STACK_SIZE)
+        # agent2_state = np.concatenate(agent2_frame_stack, axis=2) # State is now a stack of frames
     else:
         # Normalise states between 0 and 1
         agent1_state = agent1_state / max_state
-        agent2_state = agent2_state / max_state
+        # agent2_state = agent2_state / max_state
 
 
     episode_reward = np.zeros(N_AGENT)
+    episode_apples = 0
 
     while True:
         # Get actions
         agent1_action = agent1.epsilon_greedy_policy(agent1_state, eps)
-        agent2_action = agent2.epsilon_greedy_policy(agent2_state, eps)
-        # actions = [agent1_action]
-        actions = [agent1_action, agent2_action]
+        # agent2_action = agent2.epsilon_greedy_policy(agent2_state, eps)
+        actions = [agent1_action]
+        # actions = [agent1_action, agent2_action]
 
         # Take actions, observe next states and rewards
         next_observations, reward_vectors, done, _ = env.step(actions)
         next_agent1_state = next_observations['agent-0']
-        next_agent2_state = next_observations['agent-1']
+        # next_agent2_state = next_observations['agent-1']
         # next_agent1_state, next_agent2_state = next_observations
         agent1_rewards = reward_vectors['agent-0']
-        agent2_rewards = reward_vectors['agent-1']
+
+        if agent1_rewards == 1 or agent1_rewards == -49:
+            episode_apples += 1
+
+        # agent2_rewards = reward_vectors['agent-1']
         # _, agent1_rewards, agent2_rewards = reward_vectors
 
         # A dict now
@@ -1504,8 +1509,8 @@ def training_episode(render=False):
         # # Linear scalarisation
         # agent1_reward = np.dot(agent1_rewards, pref1)
         # agent2_reward = np.dot(agent2_rewards, pref2)
-        # rewards = [agent1_reward]
-        rewards = [agent1_rewards, agent2_rewards]
+        rewards = [agent1_rewards]
+        # rewards = [agent1_rewards, agent2_rewards]
 
         global steps
         # Render if true
@@ -1526,16 +1531,16 @@ def training_episode(render=False):
 
         # Store in replay buffers
         # Agent 2
-        if IMAGE:
-            agent2_frame_stack.append(next_agent2_state)
-            next_agent2_state = np.concatenate(agent2_frame_stack, axis=2)
-        else:
-            next_agent2_state = next_agent2_state / max_state
-        agent2.replay_memory.append((agent2_state, agent2_action, agent2_rewards, next_agent2_state, done))
+        # if IMAGE:
+        #     agent2_frame_stack.append(next_agent2_state)
+        #     next_agent2_state = np.concatenate(agent2_frame_stack, axis=2)
+        # else:
+        #     next_agent2_state = next_agent2_state / max_state
+        # agent2.replay_memory.append((agent2_state, agent2_action, agent2_rewards, next_agent2_state, done))
 
         # Assign next state to current state !!
         agent1_state = next_agent1_state
-        agent2_state = next_agent2_state
+        # agent2_state = next_agent2_state
 
         steps += 1
         episode_reward += np.array(rewards)
@@ -1546,35 +1551,37 @@ def training_episode(render=False):
         # Copy weights from main model to target model
         if steps % COPY_TO_TARGET_EVERY == 0:
             agent1.update_target_model()
-            agent2.update_target_model()
+            # agent2.update_target_model()
 
     agent1.reward_tracker.append(episode_reward[agent1.agent_id-1])
-    agent2.reward_tracker.append(episode_reward[agent2.agent_id-1])
+    # agent2.reward_tracker.append(episode_reward[agent2.agent_id-1])
 
-    ep_rewards = [np.round(episode_reward[agent1.agent_id-1], 2),
-                  np.round(episode_reward[agent2.agent_id-1], 2)]
-    av_rewards = [np.round(agent1.reward_tracker.mean(), 2),
-                  np.round(agent2.reward_tracker.mean(), 2)]
+    # ep_rewards = [np.round(episode_reward[agent1.agent_id-1], 2),
+    #               np.round(episode_reward[agent2.agent_id-1], 2)]
+    ep_rewards = [np.round(episode_reward[agent1.agent_id-1], 2)]
+    # av_rewards = [np.round(agent1.reward_tracker.mean(), 2),
+    #               np.round(agent2.reward_tracker.mean(), 2)]
+    av_rewards = [np.round(agent1.reward_tracker.mean(), 2)]
     # print("\rEpisode: {}, Time: {}, Reward1: {}, Avg Reward1: {}, eps: {:.3f}".format(
     #     episode, datetime.now() - start_time, ep_rewards[0], av_rewards[0], eps), end="")
-    print("\rEpisode: {}, Time: {}, Reward1: {}, Reward2: {}, Avg Reward1: {}, Avg Reward2: {}, eps: {:.3f}".format(
-        episode, datetime.now() - start_time, ep_rewards[0], ep_rewards[1],  av_rewards[0], av_rewards[1], eps), end="", flush=True)
+    print("\rEpisode: {}, Time: {}, Reward1: {}, Apples {}, Avg Reward1: {}, eps: {:.3f}".format(
+        episode, datetime.now() - start_time, ep_rewards[0], episode_apples, av_rewards[0], eps), end="", flush=True)
 
     if episode > START_TRAINING_AFTER: # Wait for buffer to fill up a bit
         agent1.training_step()
-        agent2.training_step()
+        # agent2.training_step()
 
     if episode % 250 == 0:
         agent1.model.save(f'{PATH_DIR}/models/cleanup_model_dqn1_{PATH_ID}.h5')
         agent1.plot_learning_curve(image_path=f'{PATH_DIR}/plots/cleanup_plot_dqn1_{PATH_ID}.png',
                                    csv_path=f'{PATH_DIR}/plots/cleanup_rewards_dqn1_{PATH_ID}.csv')
-        agent2.model.save(f'{PATH_DIR}/models/cleanup_model_dqn2_{PATH_ID}.h5')
-        agent2.plot_learning_curve(image_path=f'{PATH_DIR}/plots/cleanup_plot_dqn2_{PATH_ID}.png',
-                                   csv_path=f'{PATH_DIR}/plots/cleanup_rewards_dqn2_{PATH_ID}.csv')
+        # agent2.model.save(f'{PATH_DIR}/models/cleanup_model_dqn2_{PATH_ID}.h5')
+        # agent2.plot_learning_curve(image_path=f'{PATH_DIR}/plots/cleanup_plot_dqn2_{PATH_ID}.png',
+        #                            csv_path=f'{PATH_DIR}/plots/cleanup_rewards_dqn2_{PATH_ID}.csv')
 
 
-N_AGENT = 2
-env = CleanupEnv(num_agents=N_AGENT)
+N_AGENT = 1
+env = CleanupEnv(num_agents=N_AGENT, ascii_map=CLEANUP_MAP_SIMPLIFIED)
 
 if __name__ == '__main__':
 
@@ -1587,7 +1594,7 @@ if __name__ == '__main__':
     # Initialise agents
     # prey1 = DQNAgent(0)
     agent1 = DQNAgent(1)
-    agent2 = DQNAgent(2)
+    # agent2 = DQNAgent(2)
     # Uncomment to load pre-trained models
     #agent1.load_model(f'/content/models/cleanup_model_dqn1_single_2021-2-1_22_55.h5')
     #agent2.load_model(f'/content/models/cleanup_model_dqn2_single_2021-2-1_22_55.h5')
@@ -1608,8 +1615,8 @@ if __name__ == '__main__':
     agent1.model.save(f'{PATH_DIR}/models/cleanup_model_dqn1_{PATH_ID}.h5')
     agent1.plot_learning_curve(image_path=f'{PATH_DIR}/plots/cleanup_plot_dqn1_{PATH_ID}.png',
                                csv_path=f'{PATH_DIR}/plots/cleanup_rewards_dqn1_{PATH_ID}.csv')
-    agent2.model.save(f'{PATH_DIR}/models/cleanup_model_dqn2_{PATH_ID}.h5')
-    agent2.plot_learning_curve(image_path=f'{PATH_DIR}/plots/cleanup_plot_dqn2_{PATH_ID}.png',
-                               csv_path=f'{PATH_DIR}/plots/cleanup_rewards_dqn2_{PATH_ID}.csv')
+    # agent2.model.save(f'{PATH_DIR}/models/cleanup_model_dqn2_{PATH_ID}.h5')
+    # agent2.plot_learning_curve(image_path=f'{PATH_DIR}/plots/cleanup_plot_dqn2_{PATH_ID}.png',
+    #                            csv_path=f'{PATH_DIR}/plots/cleanup_rewards_dqn2_{PATH_ID}.csv')
     run_time = datetime.now() - start_time
     print(f'\nRun time: {run_time} s')
