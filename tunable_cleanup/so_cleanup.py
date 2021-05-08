@@ -1022,7 +1022,7 @@ SPAWN_PROB = [0, 0.005, 0.02, 0.05]
 thresholdDepletion = 0.4
 thresholdRestoration = 0.0
 wasteSpawnProbability = 0.5
-appleRespawnProbability = 0.05
+appleRespawnProbability = 1.0
 
 CLEANUP_MAP = [
     '@@@@@@@@@@@@@@@@@@',
@@ -1349,7 +1349,8 @@ class DQNAgent:
                 Conv2D(256, (3, 3), activation='relu'),
                 Dropout(0.2),
                 Flatten(),
-                Dense(64, activation='relu'),
+                Dense(128, activation='relu'),
+                Dense(128, activation='relu'),
                 Dense(64, activation='relu'),
                 Dense(env.action_space.n)
             ])

@@ -17,7 +17,7 @@ colour_palette = get_cmap(name='tab10').colors
 
 data_dir = './plots/'
 
-MEAN_EVERY = 50
+MEAN_EVERY = 100
 
 fig, ax = plt.subplots()
 
@@ -36,7 +36,7 @@ def plot_reward_data(csv_path, colour_id, legend_label):
         tracker.append(reward)
         mean_rewards[j] = tracker.mean()
 
-    ax.plot(reward_data[MEAN_EVERY//2:1000,0], mean_rewards[MEAN_EVERY//2:1000],
+    ax.plot(reward_data[MEAN_EVERY//2:80000,0], mean_rewards[MEAN_EVERY//2:80000],
             c=colour_palette[colour_id], label=legend_label, alpha=0.8)
 
 def plot_collective_reward(csv_paths, colour_id, legend_label):
@@ -61,18 +61,18 @@ def plot_collective_reward(csv_paths, colour_id, legend_label):
 if __name__ == '__main__':
     # PLOT 1 :: TRAINING PROGRESS
     # Wolfpack tunable
-    # plot_reward_data(f'{data_dir}/cleanup_rewards_dqn1_2021-4-24_13_38.csv', 0, 'Agent 1')
+    plot_reward_data(f'{data_dir}/cleanup_rewards_dqn1_single_2021-5-7_10_31.csv', 0, 'Agent 1')
     # plot_reward_data(f'{data_dir}/cleanup_rewards_dqn2_2021-4-24_13_38.csv', 1, 'Agent 2')
     # plot_reward_data(f'{data_dir}/cleanup_rewards_dqn3_2021-4-24_13_38.csv', 2, 'Agent 3')
     # plot_reward_data(f'{data_dir}/cleanup_rewards_dqn4_2021-4-24_13_38.csv', 3, 'Agent 4')
     # plot_reward_data(f'{data_dir}/cleanup_rewards_dqn5_2021-4-24_13_38.csv', 4, 'Agent 5')
 
-    plot_collective_reward([f'{data_dir}/cleanup_rewards_dqn1_2021-4-24_13_38.csv',
-                           f'{data_dir}/cleanup_rewards_dqn2_2021-4-24_13_38.csv',
-                           f'{data_dir}/cleanup_rewards_dqn3_2021-4-24_13_38.csv',
-                           f'{data_dir}/cleanup_rewards_dqn4_2021-4-24_13_38.csv',
-                           f'{data_dir}/cleanup_rewards_dqn5_2021-4-24_13_38.csv'],
-                           0, 'Collective Reward')
+    # plot_collective_reward([f'{data_dir}/cleanup_rewards_dqn1_2021-4-24_13_38.csv',
+    #                        f'{data_dir}/cleanup_rewards_dqn2_2021-4-24_13_38.csv',
+    #                        f'{data_dir}/cleanup_rewards_dqn3_2021-4-24_13_38.csv',
+    #                        f'{data_dir}/cleanup_rewards_dqn4_2021-4-24_13_38.csv',
+    #                        f'{data_dir}/cleanup_rewards_dqn5_2021-4-24_13_38.csv'],
+    #                        0, 'Collective Reward')
 
     # Wolpack fixed
     # plot_reward_data(f'{data_dir}/wolfpack_rewards_fixed_competitive.csv', 0, 'Fixed Competitive')

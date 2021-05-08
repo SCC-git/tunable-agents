@@ -19,7 +19,7 @@ from so_cleanup import DQNAgent, env, FRAME_STACK_SIZE, N_AGENT
 
 PATH_DIR = "./models/"
 
-MODEL_PATHS = [f'{PATH_DIR}/cleanup_model_dqn1_single_2021-3-31_16_38.h5',
+MODEL_PATHS = [f'{PATH_DIR}/cleanup_model_dqn1_single_2021-5-7_10_31.h5',
                f'{PATH_DIR}/cleanup_model_dqn2_single_2021-3-31_16_38.h5']
 
 now = datetime.now()
@@ -112,7 +112,7 @@ if __name__ == '__main__':
     agent2 = DQNAgent(2)
 
     agent1.load_model(MODEL_PATHS[0])
-    agent2.load_model(MODEL_PATHS[1])
+    agent2.load_model(MODEL_PATHS[0])
 
     results = []
     steps = 0
