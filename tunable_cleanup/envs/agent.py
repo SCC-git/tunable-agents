@@ -241,7 +241,7 @@ class CleanupAgent(Agent):
             self.reward_this_turn[1] = -1
 
     def clean(self):
-        self.reward_this_turn[3] = 1
+        self.reward_this_turn[3] += 1
 
     def consume(self, char):
         """Defines how an agent interacts with the char it is standing on"""

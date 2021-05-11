@@ -230,7 +230,7 @@ class DQNAgent:
         else:
             Q_values = self.model([state[np.newaxis], weights[np.newaxis]])
             max_val = np.argmax(Q_values)
-            print(f'Agent {self.agent_id} Q Values: {Q_values[0]}, Max Value index: {max_val}')
+            # print(f'Agent {self.agent_id} Q Values: {Q_values[0]}, Max Value index: {max_val}')
             return max_val
 
     def training_step(self):
@@ -344,6 +344,10 @@ def training_episode(render=False):
 
 
     episode_reward = np.zeros(N_AGENT)
+    agent1_episode_apples = 0
+    agent2_episode_apples = 0
+    agent1_episode_cleans = 0
+    agent2_episode_cleans = 0
 
     while True:
         # Get actions
@@ -361,6 +365,15 @@ def training_episode(render=False):
         agent1_rewards = reward_vectors['agent-0']
         agent2_rewards = reward_vectors['agent-1']
         # _, agent1_rewards, agent2_rewards = reward_vectors
+
+        if agent1_rewards[2]:
+            agent1_episode_apples += 1
+        if agent2_rewards[2]:
+            agent2_episode_apples += 1
+        if agent1_rewards[3]:
+            agent1_episode_cleans += agent1_rewards[3]
+        if agent2_rewards[3]:
+            agent2_episode_cleans += agent2_rewards[3]
 
         # A dict now
         done = done['__all__']
@@ -421,8 +434,8 @@ def training_episode(render=False):
                   np.round(agent2.reward_tracker.mean(), 2)]
     # print("\rEpisode: {}, Time: {}, Reward1: {}, Avg Reward1: {}, eps: {:.3f}".format(
     #     episode, datetime.now() - start_time, ep_rewards[0], av_rewards[0], eps), end="")
-    print("\rEpisode: {}, Time: {}, Reward1: {}, Reward2: {}, Avg Reward1: {}, Avg Reward2: {}, eps: {:.3f}".format(
-        episode, datetime.now() - start_time, ep_rewards[0], ep_rewards[1],  av_rewards[0], av_rewards[1], eps), end="")
+    print("\rEpisode: {}, Time: {}, Reward1: {}, Apples1: {}, Cleans1: {}, Reward2: {}, Apples2: {}, Cleans2: {}, Avg Reward1: {}, Avg Reward2: {}, eps: {:.3f}".format(
+        episode, datetime.now() - start_time, ep_rewards[0], agent1_episode_apples, agent1_episode_cleans, ep_rewards[1], agent2_episode_apples, agent2_episode_cleans, av_rewards[0], av_rewards[1], eps), end="")
 
     if episode > START_TRAINING_AFTER: # Wait for buffer to fill up a bit
         agent1.training_step()

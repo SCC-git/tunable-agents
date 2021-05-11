@@ -8,6 +8,9 @@ Author: David O'Callaghan
 import numpy as np
 import random
 import pandas as pd
+from datetime import datetime
+import os
+import sys
 
 import tensorflow as tf
 
@@ -18,10 +21,19 @@ from mo_cleanup import DQNAgent, env, FRAME_STACK_SIZE, N_AGENT
 
 PATH_DIR = "./models/"
 
-MODEL_PATHS = [f'{PATH_DIR}/cleanup_model_agent1_tunable_2021-4-14_11_4.h5',
-               f'{PATH_DIR}/cleanup_model_agent2_tunable_2021-4-14_11_4.h5']
+MODEL_PATHS = [f'{PATH_DIR}/cleanup_model_agent1_tunable_2021-5-9_21_45.h5',
+               f'{PATH_DIR}/cleanup_model_agent2_tunable_2021-5-9_21_45.h5']
 
-EPISODES = 5
+
+now = datetime.now()
+date_and_time = f'{now.year}-{now.month}-{now.day}_{now.hour}_{now.minute}'
+LOGS_DIR = './logs/' + str(date_and_time) + '/'
+if not os.path.exists(LOGS_DIR):
+    os.makedirs(LOGS_DIR)
+log_file = open(f'{LOGS_DIR}output.txt', 'w')
+sys.stdout = log_file
+
+EPISODES = 1000
 
 if __name__ == '__main__':
 
@@ -38,7 +50,7 @@ if __name__ == '__main__':
 
     steps = 0
 
-    prefs = np.linspace(0, 0.4, 4)
+    prefs = np.linspace(0, 0.4, 5)
     results = []
     for pref in prefs:
 
@@ -137,9 +149,9 @@ if __name__ == '__main__':
                 if agent2_rewards[2]:
                     agent2_apples += 1
                 if agent1_rewards[3]:
-                    agent1_cleans += 1
+                    agent1_cleans += agent1_rewards[3]
                 if agent2_rewards[3]:
-                    agent2_cleans += 1
+                    agent2_cleans += agent2_rewards[3]
 
                 if done:
                     print(f'\rEp {episode}: Agent1_Apples: {agent1_apples},  Agent2_Apples: {agent2_apples},  Agent1_Cleans: {agent1_cleans},  Agent2_Cleans: {agent2_cleans}\n', end='')
@@ -155,4 +167,4 @@ if __name__ == '__main__':
 
     results = pd.DataFrame(results, columns = ["Competitive (Apple)", "Cooperative (Clean)", "Agent 1 Apple", "Agent 2 Apple", "Agent 1 Clean", "Agent 2 Clean"])
 
-    results.to_csv(f'./results/cleanup_tuning_matched_prefs_testing.csv')
+    results.to_csv(f'./results/cleanup_tuning_matched_prefs_{date_and_time}.csv')
