@@ -1363,7 +1363,7 @@ class DQNAgent:
         self.loss_fn = keras.losses.Huber()
         return model
 
-    def epsilon_greedy_policy(self, observations, epsilon, training: bool=False):
+    def epsilon_greedy_policy(self, observations, epsilon):
         """
         Select greedy action from model output based on current state with
         probability epsilon. With probability 1 - epsilon select random action.
@@ -1371,7 +1371,7 @@ class DQNAgent:
         if np.random.rand() < epsilon:
             return random.choice(self.actions)
         else:
-            Q_values = self.model(observations[np.newaxis], training=training)
+            Q_values = self.model(observations[np.newaxis])
             max_val = np.argmax(Q_values)
             # print(f'Agent {self.agent_id} Q Values: {Q_values[0]}, Max Value index: {max_val}')
             return max_val
