@@ -1019,10 +1019,10 @@ CLEANUP_COLORS = {'C': [100, 255, 255],  # Cyan cleaning beam
 
 SPAWN_PROB = [0, 0.005, 0.02, 0.05]
 
-thresholdDepletion = 0.4
+thresholdDepletion = 0.45
 thresholdRestoration = 0.0
 wasteSpawnProbability = 0.5
-appleRespawnProbability = 1.0
+appleRespawnProbability = 0.5
 
 CLEANUP_MAP = [
     '@@@@@@@@@@@@@@@@@@',
@@ -1281,7 +1281,7 @@ REPLAY_MEMORY_SIZE = 6_000
 GAMMA = 0.99
 ALPHA = 1e-4
 
-TRAINING_EPISODES = 80_000
+TRAINING_EPISODES = 40_000
 
 EPSILON_START = 1.0
 EPSILON_END = 0.01
@@ -1349,8 +1349,7 @@ class DQNAgent:
                 Conv2D(256, (3, 3), activation='relu'),
                 Dropout(0.2),
                 Flatten(),
-                Dense(128, activation='relu'),
-                Dense(128, activation='relu'),
+                Dense(64, activation='relu'),
                 Dense(64, activation='relu'),
                 Dense(env.action_space.n)
             ])
@@ -1364,7 +1363,7 @@ class DQNAgent:
         self.loss_fn = keras.losses.Huber()
         return model
 
-    def epsilon_greedy_policy(self, state, epsilon):
+    def epsilon_greedy_policy(self, observations, epsilon, training: bool=False):
         """
         Select greedy action from model output based on current state with
         probability epsilon. With probability 1 - epsilon select random action.
@@ -1372,7 +1371,7 @@ class DQNAgent:
         if np.random.rand() < epsilon:
             return random.choice(self.actions)
         else:
-            Q_values = self.model(state[np.newaxis])
+            Q_values = self.model(observations[np.newaxis], training=training)
             max_val = np.argmax(Q_values)
             # print(f'Agent {self.agent_id} Q Values: {Q_values[0]}, Max Value index: {max_val}')
             return max_val
@@ -1389,11 +1388,10 @@ class DQNAgent:
         states, actions, rewards, next_states, dones = experiences
 
         # Compute target Q values from 'next_states'
-        next_Q_values = self.target_model.predict(next_states)
+        next_Q_values = self.target_model(next_states)
 
         max_next_Q_values = np.max(next_Q_values, axis=1)
-        target_Q_values = (rewards +
-                           (1 - dones) * self.gamma * max_next_Q_values)
+        target_Q_values = (rewards + (1 - dones) * self.gamma * max_next_Q_values)
         target_Q_values = target_Q_values.reshape(-1, 1) # Make column vector
 
         # Mask to only consider action taken
