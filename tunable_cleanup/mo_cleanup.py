@@ -352,7 +352,7 @@ def training_episode(render=False):
     while True:
         # Get actions
         agent1_action = agent1.epsilon_greedy_policy(agent1_state, eps, weights1)
-        if agent1_action:
+        if agent1_action == 8:
             agent1_episode_cleans += 1
         # agent2_action = agent2.epsilon_greedy_policy(agent2_state, eps, weights2)
 
