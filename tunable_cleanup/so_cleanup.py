@@ -1291,7 +1291,7 @@ COPY_TO_TARGET_EVERY = 1000 # Steps
 START_TRAINING_AFTER = 50 # Episodes
 MEAN_REWARD_EVERY = 300 # Episodes
 
-FRAME_STACK_SIZE = 3
+FRAME_STACK_SIZE = 1
 
 now = datetime.now()
 date_and_time = f'{now.year}-{now.month}-{now.day}_{now.hour}_{now.minute}'
