@@ -193,8 +193,11 @@ class MapEnv(gym.Env):
         info = {}
         for agent in self.agents.values():
             agent.grid = map_with_agents
-            rgb_arr = self.map_to_colors(agent.get_state(), self.color_map)
-            rgb_arr = self.rotate_view(agent.orientation, rgb_arr)
+            rgb_arr = self.map_to_colors(None, self.color_map)
+            # rgb_arr = self.rotate_view('UP', rgb_arr)
+            # rgb_arr = self.rotate_view(agent.get_orientation, rgb_arr)
+            rgb_arr = np.delete(rgb_arr, ([0, 16]), axis=0)
+            rgb_arr = np.delete(rgb_arr, ([0, 16]), axis=1)
             observations[agent.agent_id] = rgb_arr
             rewards[agent.agent_id] = agent.compute_reward()
             # dones[agent.agent_id] = agent.get_done()
@@ -230,7 +233,9 @@ class MapEnv(gym.Env):
             agent.grid = map_with_agents
             # agent.grid = util.return_view(map_with_agents, agent.pos,
             #                               agent.row_size, agent.col_size)
-            rgb_arr = self.map_to_colors(agent.get_state(), self.color_map)
+            rgb_arr = self.map_to_colors(None, self.color_map)
+            rgb_arr = np.delete(rgb_arr, ([0, 16]), axis=0)
+            rgb_arr = np.delete(rgb_arr, ([0, 16]), axis=1)
             observations[agent.agent_id] = rgb_arr
         return observations
 

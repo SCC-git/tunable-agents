@@ -82,6 +82,7 @@ class Agent(object):
 
     def compute_reward(self):
         reward = self.reward_this_turn
+        # rewards, states, actions by environment, consuming, interface with env, signs of rewards
         # if (self.reward_this_turn != [-1, 0, 0, 0, 0]):
         #     print(self.reward_this_turn)
         self.reward_this_turn = [0, 0, 0, 0]

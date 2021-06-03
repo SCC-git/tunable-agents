@@ -19,8 +19,8 @@ from so_cleanup import DQNAgent, env, FRAME_STACK_SIZE, N_AGENT
 
 PATH_DIR = "./models/"
 
-MODEL_PATHS = [f'{PATH_DIR}/cleanup_model_dqn1_single_2021-5-8_23_31.h5',
-               f'{PATH_DIR}/cleanup_model_dqn2_single_2021-3-31_16_38.h5']
+MODEL_PATHS = [f'{PATH_DIR}/cleanup_model_agent1_tunable_2021-5-9_21_45.h5',
+               f'{PATH_DIR}/cleanup_model_agent2_tunable_2021-5-9_21_45.h5']
 
 now = datetime.now()
 date_and_time = f'{now.year}-{now.month}-{now.day}_{now.hour}_{now.minute}'
@@ -97,6 +97,18 @@ AGENT2_APPLE_STATE = [
     [[180,180,180], [180,180,180], [180,180,180], [180,180,180], [180,180,180], [180,180,180], [180,180,180], [180,180,180], [180,180,180], [180,180,180], [180,180,180], [180,180,180], [180,180,180], [180,180,180], [180,180,180]]
 ]
 
+# class PreferenceSpace:
+#
+#     def __init__(self):
+#         w0 = 0.05 # Fire
+#         w1 = 0.55 # Hit
+#         w2_range = np.linspace(0,0.4,5) # Apple
+#         # w3 = 0 # Clean
+#         self.distribution = [np.asarray([w0, w1, w2, 0.4-w2], dtype=np.float32) for w2 in w2_range]
+#
+#     def sample(self):
+#         return random.choice(self.distribution)
+
 sys.stdout = sys.__stdout__
 
 EPISODES = 1000
@@ -109,10 +121,10 @@ if __name__ == '__main__':
 
     # Initialise agents
     agent1 = DQNAgent(1)
-    # agent2 = DQNAgent(2)
+    agent2 = DQNAgent(2)
 
     agent1.load_model(MODEL_PATHS[0])
-    # agent2.load_model(MODEL_PATHS[1])
+    agent2.load_model(MODEL_PATHS[1])
 
     results = []
     steps = 0
@@ -121,7 +133,7 @@ if __name__ == '__main__':
     #
     # # Reset env
     agent1_state = AGENT1_INITIAL_STATE
-    # agent2_state = AGENT2_APPLE_STATE
+    agent2_state = AGENT2_INITIAL_STATE
 
     # Create deque for storing stack of N frames
     # Agent 1
@@ -129,22 +141,27 @@ if __name__ == '__main__':
     agent1_frame_stack = deque(agent1_initial_stack, maxlen=FRAME_STACK_SIZE)
     agent1_state = np.concatenate(agent1_frame_stack, axis=2) # State is now a stack of frames
     # # Agent 2
-    # agent2_initial_stack = [agent2_state for _ in range(FRAME_STACK_SIZE)]
-    # agent2_frame_stack = deque(agent2_initial_stack, maxlen=FRAME_STACK_SIZE)
-    # agent2_state = np.concatenate(agent2_frame_stack, axis=2) # State is now a stack of frames
+    agent2_initial_stack = [agent2_state for _ in range(FRAME_STACK_SIZE)]
+    agent2_frame_stack = deque(agent2_initial_stack, maxlen=FRAME_STACK_SIZE)
+    agent2_state = np.concatenate(agent2_frame_stack, axis=2) # State is now a stack of frames
+
+    # pref_space = PreferenceSpace()
+    # pref1 = pref_space.sample()
 
     # Get actions
     agent1_action = agent1.epsilon_greedy_policy(agent1_state, eps)
-    # agent2_action = agent2.epsilon_greedy_policy(agent2_state, eps)
+    # agent1_action = agent1.epsilon_greedy_policy(agent1_state, eps, pref1)
+    agent2_action = agent2.epsilon_greedy_policy(agent2_state, eps)
+    # agent2_action = agent2.epsilon_greedy_policy(agent2_state, eps, pref1)
     print(f"Agent 1 Action: {env.agents['agent-0'].action_map(agent1_action)}")
-    # print(f"Agent 2 Action: {env.agents['agent-1'].action_map(agent2_action)}")
+    print(f"Agent 2 Action: {env.agents['agent-1'].action_map(agent2_action)}")
 
-    # next_observations, reward_vectors, done, _ = env.step([agent1_action])
-    # next_agent1_state = next_observations['agent-0']
-    #
-    # plt.cla()
-    # plt.imshow(next_agent1_state, interpolation="nearest")
-    # plt.savefig('./testing/NEXT_STATE')
+    next_observations, reward_vectors, done, _ = env.step([agent1_action])
+    next_agent1_state = next_observations['agent-0']
+
+    plt.cla()
+    plt.imshow(next_agent1_state, interpolation="nearest")
+    plt.savefig('./testing/NEXT_STATE')
 
     # plt.cla()
     # plt.imshow(AGENT1_INITIAL_STATE, interpolation='nearest')

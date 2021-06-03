@@ -21,8 +21,8 @@ from q_values_tester import AGENT1_APPLE_STATE, AGENT2_APPLE_STATE
 
 PATH_DIR = "./"
 
-MODEL_PATHS = [f'{PATH_DIR}/models/cleanup_model_dqn1_single_2021-5-6_17_36.h5',
-               f'{PATH_DIR}/models/cleanup_model_dqn1_single_2021-5-6_17_36.h5']
+MODEL_PATHS = [f'{PATH_DIR}/models/cleanup_model_dqn1_single_2021-6-1_11_8.h5',
+               f'{PATH_DIR}/models/cleanup_model_dqn1_single_2021-6-1_11_8.h5']
 
 now = datetime.now()
 date_and_time = f'{now.year}-{now.month}-{now.day}_{now.hour}_{now.minute}'
@@ -35,7 +35,7 @@ if not os.path.exists(LOGS_DIR):
 log_file = open(f'{LOGS_DIR}output.txt', 'w')
 sys.stdout = sys.__stdout__
 
-EPISODES = 1
+EPISODES = 1000
 
 if __name__ == '__main__':
 
@@ -55,8 +55,6 @@ if __name__ == '__main__':
     # agent3.load_model(MODEL_PATHS[0])
     # agent4.load_model(MODEL_PATHS[1])
     # agent5.load_model(MODEL_PATHS[0])
-
-    steps = 0
 
     results = []
     steps = 0
@@ -101,8 +99,8 @@ if __name__ == '__main__':
 
         while True:
             # Get actionss
-            agent1_action = agent1.epsilon_greedy_policy(agent1_state, eps)
-            agent2_action = agent2.epsilon_greedy_policy(agent2_state, eps)
+            agent1_action = agent1.epsilon_greedy_policy(agent1_state, eps, training=True)
+            agent2_action = agent2.epsilon_greedy_policy(agent2_state, eps, training=True)
             # agent3_action = agent3.epsilon_greedy_policy(agent3_state, eps)
             # agent4_action = agent4.epsilon_greedy_policy(agent4_state, eps)
             # agent5_action = agent5.epsilon_greedy_policy(agent5_state, eps)

@@ -21,7 +21,7 @@ CLEANUP_COLORS = {'C': [100, 255, 255],  # Cyan cleaning beam
 
 SPAWN_PROB = [0, 0.005, 0.02, 0.05]
 
-thresholdDepletion = 0.4
+thresholdDepletion = 0.45
 thresholdRestoration = 0.0
 wasteSpawnProbability = 0.5
 appleRespawnProbability = 0.5
