@@ -213,8 +213,12 @@ class MapEnv(gym.Env):
         info = {}
         for agent in self.agents.values():
             agent.grid = map_with_agents
-            rgb_arr = self.map_to_colors(agent.get_state(), self.color_map)
-            rgb_arr = self.rotate_view(agent.orientation, rgb_arr)
+            rgb_arr = self.map_to_colors(None, self.color_map)
+            # rgb_arr = self.map_to_colors(agent.get_state(), self.color_map)
+            # rgb_arr = self.rotate_view('UP', rgb_arr)
+            # rgb_arr = self.rotate_view(agent.get_orientation, rgb_arr)
+            rgb_arr = np.delete(rgb_arr, ([0, 16]), axis=0)
+            rgb_arr = np.delete(rgb_arr, ([0, 16]), axis=1)
             observations[agent.agent_id] = rgb_arr
             rewards[agent.agent_id] = agent.compute_reward()
             # dones[agent.agent_id] = agent.get_done()
@@ -250,7 +254,10 @@ class MapEnv(gym.Env):
             agent.grid = map_with_agents
             # agent.grid = util.return_view(map_with_agents, agent.pos,
             #                               agent.row_size, agent.col_size)
-            rgb_arr = self.map_to_colors(agent.get_state(), self.color_map)
+            rgb_arr = self.map_to_colors(None, self.color_map)
+            rgb_arr = np.delete(rgb_arr, ([0, 16]), axis=0)
+            rgb_arr = np.delete(rgb_arr, ([0, 16]), axis=1)
+            # rgb_arr = self.map_to_colors(agent.get_state(), self.color_map)
             observations[agent.agent_id] = rgb_arr
         return observations
 
@@ -1050,6 +1057,27 @@ CLEANUP_MAP = [
     '@RRRRR       BBBB@',
     '@HHHH       BBBBB@',
     '@@@@@@@@@@@@@@@@@@']
+#
+# CLEANUP_MAP_SIMPLIFIED = [
+#     '@@@@@@@@@@@@@@@@@',
+#     '@RRRR      BBBBB@',
+#     '@HHHH       BBBB@',
+#     '@RRRR      BBBBB@',
+#     '@RRRR P     BBBB@',
+#     '@RRRR   PP BBBBB@',
+#     '@HHHH       BBBB@',
+#     '@RRRR      BBBBB@',
+#     '@HHHHSSS    BBBB@',
+#     '@HHHHSSS    BBBB@',
+#     '@RRRR  P  P BBBB@',
+#     '@HHHH  P   BBBBB@',
+#     '@RRRR     P BBBB@',
+#     '@HHHH P    BBBBB@',
+#     '@RRRR       BBBB@',
+#     '@HHHH  P   BBBBB@',
+#     '@RRRR       BBBB@',
+#     '@RRRR P P  BBBBB@',
+#     '@@@@@@@@@@@@@@@@@']
 
 CLEANUP_MAP_SIMPLIFIED = [
     '@@@@@@@@@@@@@@@@@',
@@ -1063,13 +1091,11 @@ CLEANUP_MAP_SIMPLIFIED = [
     '@HHHHSSS    BBBB@',
     '@HHHHSSS    BBBB@',
     '@RRRR  P  P BBBB@',
-    '@HHHH  P   BBBBB@',
     '@RRRR     P BBBB@',
     '@HHHH P    BBBBB@',
     '@RRRR       BBBB@',
     '@HHHH  P   BBBBB@',
     '@RRRR       BBBB@',
-    '@RRRR P P  BBBBB@',
     '@@@@@@@@@@@@@@@@@']
 
 class CleanupEnv(MapEnv):
@@ -1291,7 +1317,7 @@ COPY_TO_TARGET_EVERY = 1000 # Steps
 START_TRAINING_AFTER = 50 # Episodes
 MEAN_REWARD_EVERY = 300 # Episodes
 
-FRAME_STACK_SIZE = 1
+FRAME_STACK_SIZE = 3
 
 now = datetime.now()
 date_and_time = f'{now.year}-{now.month}-{now.day}_{now.hour}_{now.minute}'
@@ -1322,6 +1348,7 @@ class DQNAgent:
         self.reward_tracker = RewardTracker(maxlen=MEAN_REWARD_EVERY)
 
         if IMAGE:
+            # image_size = env.base_map.shape
             image_size = env.observation_space.shape
             self.input_size = (*image_size[:2],image_size[-1]*FRAME_STACK_SIZE)
         else:
@@ -1481,6 +1508,7 @@ def training_episode(render=False):
 
     episode_reward = np.zeros(N_AGENT)
     episode_apples = 0
+    episode_cleans = 0
 
     while True:
         # Get actions
@@ -1492,12 +1520,18 @@ def training_episode(render=False):
         # Take actions, observe next states and rewards
         next_observations, reward_vectors, done, _ = env.step(actions)
         next_agent1_state = next_observations['agent-0']
+
+        # plt.cla()
+        # plt.imshow(next_agent1_state, interpolation="nearest")
+        # plt.savefig('./testing/NEXT_STATE')
         # next_agent2_state = next_observations['agent-1']
         # next_agent1_state, next_agent2_state = next_observations
         agent1_rewards = reward_vectors['agent-0']
 
         if agent1_rewards == 1 or agent1_rewards == -49:
             episode_apples += 1
+        if agent1_rewards == -1 or agent1_rewards == -51:
+            episode_cleans += 1
 
         # agent2_rewards = reward_vectors['agent-1']
         # _, agent1_rewards, agent2_rewards = reward_vectors
@@ -1563,8 +1597,8 @@ def training_episode(render=False):
     av_rewards = [np.round(agent1.reward_tracker.mean(), 2)]
     # print("\rEpisode: {}, Time: {}, Reward1: {}, Avg Reward1: {}, eps: {:.3f}".format(
     #     episode, datetime.now() - start_time, ep_rewards[0], av_rewards[0], eps), end="")
-    print("\rEpisode: {}, Time: {}, Reward1: {}, Apples {}, Avg Reward1: {}, eps: {:.3f}".format(
-        episode, datetime.now() - start_time, ep_rewards[0], episode_apples, av_rewards[0], eps), end="", flush=True)
+    print("\rEpisode: {}, Time: {}, Reward1: {}, Apples {}, Cleans {}, Avg Reward1: {}, eps: {:.3f}".format(
+        episode, datetime.now() - start_time, ep_rewards[0], episode_apples, episode_cleans, av_rewards[0], eps), end="", flush=True)
 
     if episode > START_TRAINING_AFTER: # Wait for buffer to fill up a bit
         agent1.training_step()
