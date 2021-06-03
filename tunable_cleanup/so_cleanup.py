@@ -1513,6 +1513,8 @@ def training_episode(render=False):
     while True:
         # Get actions
         agent1_action = agent1.epsilon_greedy_policy(agent1_state, eps)
+        if agent1_action == 8:
+            episode_cleans += 1
         # agent2_action = agent2.epsilon_greedy_policy(agent2_state, eps)
         actions = [agent1_action]
         # actions = [agent1_action, agent2_action]
@@ -1530,8 +1532,6 @@ def training_episode(render=False):
 
         if agent1_rewards == 1 or agent1_rewards == -49:
             episode_apples += 1
-        if agent1_rewards == -1 or agent1_rewards == -51:
-            episode_cleans += 1
 
         # agent2_rewards = reward_vectors['agent-1']
         # _, agent1_rewards, agent2_rewards = reward_vectors
